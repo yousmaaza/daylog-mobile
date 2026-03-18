@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   loadTasks, saveTasks, loadTheme, saveTheme,
-  loadTemplates, saveTemplates, loadUserName, saveUserName,
+  loadUserName, saveUserName,
   loadAuth, saveAuth,
 } from '../storage'
 import { uid, toKey, getWeekStart, addDays } from '../utils'
@@ -12,7 +12,6 @@ export function useTasks() {
   const [darkMode, setDarkMode]       = useState(false)
   const [loaded, setLoaded]           = useState(false)
   const [tick, setTick]               = useState(0)
-  const [templates, setTemplates]     = useState([])
   const [userName, setUserNameState]  = useState('')
   const [user, setUser]               = useState(null)   // { name, email, photo }
 
@@ -24,11 +23,10 @@ export function useTasks() {
   // Load from AsyncStorage on mount
   useEffect(() => {
     Promise.all([
-      loadTasks(), loadTheme(), loadTemplates(), loadUserName(), loadAuth(),
-    ]).then(([savedTasks, isDark, savedTemplates, savedName, savedUser]) => {
+      loadTasks(), loadTheme(), loadUserName(), loadAuth(),
+    ]).then(([savedTasks, isDark, savedName, savedUser]) => {
       setTasks(savedTasks)
       setDarkMode(isDark)
-      setTemplates(savedTemplates)
       setUserNameState(savedName)
       setUser(savedUser)
       setLoaded(true)
@@ -39,11 +37,6 @@ export function useTasks() {
   useEffect(() => {
     if (loaded) saveTasks(tasks)
   }, [tasks, loaded])
-
-  // Persist templates on change
-  useEffect(() => {
-    if (loaded) saveTemplates(templates)
-  }, [templates, loaded])
 
   // 1-second tick for live timers
   useEffect(() => {
@@ -89,20 +82,6 @@ export function useTasks() {
   const selectDay = useCallback((key) => {
     setSelDate(key)
     setSelTaskId(null)
-  }, [])
-
-  // ── Template actions ─────────────────────────────────────────────────────
-
-  const addTemplate = useCallback((name) => {
-    if (!name.trim()) return
-    setTemplates(prev => {
-      if (prev.includes(name.trim())) return prev
-      return [...prev, name.trim()]
-    })
-  }, [])
-
-  const removeTemplate = useCallback((name) => {
-    setTemplates(prev => prev.filter(t => t !== name))
   }, [])
 
   const setUserName = useCallback((name) => {
@@ -208,12 +187,11 @@ export function useTasks() {
   return {
     tasks, darkMode, loaded, tick,
     selDate, weekStart, selTaskId,
-    templates, userName, user,
+    userName, user,
     setSelTaskId, toggleDarkMode, setUserName,
     login, logout,
     prevWeek, nextWeek, goToday, selectDay,
     addTask, startTask, pauseTask, doneTask, deleteTask, reorderTasks, changeTaskTag,
-    addTemplate, removeTemplate,
     toggleFavorite,
   }
 }

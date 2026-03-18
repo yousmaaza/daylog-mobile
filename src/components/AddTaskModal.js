@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   Modal, View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, KeyboardAvoidingView, Platform, Pressable,
@@ -7,9 +7,21 @@ import { useTaskContext } from '../context/TaskContext'
 import { DEFAULT_TAGS } from '../constants'
 
 export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClose }) {
-  const { templates } = useTaskContext()
-  const [value, setValue]         = useState('')
+  const { tasks } = useTaskContext()
+  const [value, setValue]                 = useState('')
   const [selectedTagId, setSelectedTagId] = useState('other')
+
+  const favoriteTasks = useMemo(() => {
+    const all = []
+    Object.values(tasks).forEach(dayTasks => {
+      dayTasks.forEach(t => { if (t.favorite) all.push(t) })
+    })
+    // deduplicate by name, keep most recent
+    const seen = new Set()
+    return all
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .filter(t => { if (seen.has(t.name)) return false; seen.add(t.name); return true })
+  }, [tasks])
 
   const reset = () => {
     setValue('')
@@ -57,36 +69,44 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
             What do you need to get done?
           </Text>
 
-          {/* Template quick picks */}
-          {templates.length > 0 && (
+          {/* Favorites quick pick */}
+          {favoriteTasks.length > 0 && (
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: C.inkMuted }]}>Quick pick</Text>
+              <Text style={[styles.sectionLabel, { color: C.inkMuted }]}>♥ Favorites</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.chipsRow}
               >
-                {templates.map(tpl => (
-                  <TouchableOpacity
-                    key={tpl}
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: value === tpl ? C.amber : C.bgInput,
-                        borderColor:     value === tpl ? C.amber : C.border,
-                      },
-                    ]}
-                    onPress={() => setValue(tpl)}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[
-                      styles.chipText,
-                      { color: value === tpl ? '#FFFFFF' : C.inkSecondary },
-                    ]}>
-                      {tpl}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {favoriteTasks.map(fav => {
+                  const isSelected = value === fav.name
+                  const favTagId   = fav.tagId || 'other'
+                  const tag        = DEFAULT_TAGS.find(t => t.id === favTagId)
+                  return (
+                    <TouchableOpacity
+                      key={fav.id}
+                      style={[
+                        styles.chip,
+                        {
+                          backgroundColor: isSelected ? (tag?.dot ?? C.amber) : C.bgInput,
+                          borderColor:     isSelected ? (tag?.dot ?? C.amber) : C.border,
+                        },
+                      ]}
+                      onPress={() => {
+                        setValue(fav.name)
+                        setSelectedTagId(favTagId)
+                      }}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={[
+                        styles.chipText,
+                        { color: isSelected ? '#FFFFFF' : C.inkSecondary },
+                      ]}>
+                        {fav.name}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
               </ScrollView>
             </View>
           )}

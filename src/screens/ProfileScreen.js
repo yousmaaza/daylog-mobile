@@ -6,7 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path, Circle, Rect } from 'react-native-svg'
 import { useTaskContext } from '../context/TaskContext'
-import { COLORS, TASK_PALETTE, DEFAULT_TAGS } from '../constants'
+import { COLORS, DEFAULT_TAGS } from '../constants'
 import { getTotalMs, formatShort } from '../utils'
 
 // ── Small chevron icon ────────────────────────────────────────────────────────
@@ -47,7 +47,6 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
   const {
     darkMode, toggleDarkMode,
-    templates, addTemplate, removeTemplate,
     userName, setUserName,
     user, logout,
     tasks,
@@ -55,12 +54,9 @@ export default function ProfileScreen() {
   } = useTaskContext()
   const C = darkMode ? COLORS.dark : COLORS.light
 
-  const [editingName, setEditingName]     = useState(false)
-  const [nameInput, setNameInput]         = useState(userName)
-  const [newTemplate, setNewTemplate]     = useState('')
-  const [addingTemplate, setAddingTemplate] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [nameInput, setNameInput]     = useState(userName)
   const [showFavorites, setShowFavorites] = useState(true)
-  const [showTemplates, setShowTemplates] = useState(false)
 
   // Collect all favorited tasks across all days
   const favoriteTasks = useMemo(() => {
@@ -80,14 +76,6 @@ export default function ProfileScreen() {
   const handleSaveName = () => {
     setUserName(nameInput.trim())
     setEditingName(false)
-  }
-
-  const handleAddTemplate = () => {
-    if (newTemplate.trim()) {
-      addTemplate(newTemplate.trim())
-      setNewTemplate('')
-      setAddingTemplate(false)
-    }
   }
 
   return (
@@ -207,89 +195,6 @@ export default function ProfileScreen() {
             <Text style={[styles.emptyFavText, { color: C.inkFaint }]}>
               Tap ♡ on any task to add it here
             </Text>
-          </View>
-        )}
-      </View>
-
-      {/* ── Quick Tasks / Templates ──────────────────────────────────────── */}
-      <View style={[styles.section, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
-        <MenuRow
-          icon={<Text style={{ fontSize: 16 }}>🏷</Text>}
-          label={`Quick Tasks${templates.length > 0 ? `  ·  ${templates.length}` : ''}`}
-          right={templates.length > 0 && (
-            <Text style={[styles.badge, { backgroundColor: C.amberLight, color: C.amber }]}>
-              {templates.length}
-            </Text>
-          )}
-          onPress={() => setShowTemplates(v => !v)}
-          colors={C}
-          noBorder={showTemplates}
-        />
-
-        {showTemplates && (
-          <View style={[styles.templateBody, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.border }]}>
-            {/* Add new template */}
-            {addingTemplate ? (
-              <View style={[styles.addRow, { borderColor: C.border }]}>
-                <TextInput
-                  style={[styles.templateInput, { color: C.inkPrimary }]}
-                  value={newTemplate}
-                  onChangeText={setNewTemplate}
-                  onSubmitEditing={handleAddTemplate}
-                  placeholder="Template name…"
-                  placeholderTextColor={C.inkMuted}
-                  autoFocus
-                  selectionColor={C.amber}
-                />
-                <TouchableOpacity
-                  style={[styles.addConfirmBtn, { backgroundColor: newTemplate.trim() ? C.amber : C.bgInput }]}
-                  onPress={handleAddTemplate}
-                >
-                  <Text style={[styles.addConfirmText, { color: newTemplate.trim() ? '#FFFFFF' : C.inkMuted }]}>Add</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.cancelCircle, { backgroundColor: C.bgInput }]}
-                  onPress={() => { setAddingTemplate(false); setNewTemplate('') }}
-                >
-                  <Text style={[{ color: C.inkMuted, fontSize: 14 }]}>✕</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.addTplBtn, { borderColor: C.border }]}
-                onPress={() => setAddingTemplate(true)}
-              >
-                <Text style={[styles.addTplText, { color: C.amber }]}>+ Add template</Text>
-              </TouchableOpacity>
-            )}
-
-            {templates.length === 0 && !addingTemplate && (
-              <Text style={[styles.emptyTpl, { color: C.inkFaint }]}>
-                No templates yet. Add some to speed up task creation.
-              </Text>
-            )}
-
-            {templates.map((tpl, i) => {
-              const palette = TASK_PALETTE[i % TASK_PALETTE.length]
-              return (
-                <View
-                  key={tpl}
-                  style={[
-                    styles.tplRow,
-                    { borderTopWidth: i === 0 && !addingTemplate ? 0 : StyleSheet.hairlineWidth, borderTopColor: C.border },
-                  ]}
-                >
-                  <View style={[styles.tplDot, { backgroundColor: palette.dot }]} />
-                  <Text style={[styles.tplName, { color: C.inkPrimary }]} numberOfLines={1}>{tpl}</Text>
-                  <TouchableOpacity
-                    onPress={() => removeTemplate(tpl)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={{ color: C.inkFaint, fontSize: 14 }}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-              )
-            })}
           </View>
         )}
       </View>
