@@ -229,8 +229,8 @@ export default function TimelineScreen() {
               const sessionMs  = block.endTime
                 ? block.endTime - block.startTime
                 : now - block.startTime
-              const showName     = true              // always show — BLOCK_MIN guarantees room
-              const showDuration = blockH >= 52
+              const showName     = !block.isLive
+              const showDuration = !block.isLive && blockH >= 52
 
               return (
                 <View
@@ -242,29 +242,29 @@ export default function TimelineScreen() {
                       height:          blockH,
                       left:            leftOff + 3,
                       width:           colWidth - 6,
-                      backgroundColor: block.isDone ? `${palette.bg}88` : palette.bg,
+                      backgroundColor: block.isLive ? palette.dot : (block.isDone ? `${palette.bg}88` : palette.bg),
                       borderColor:     palette.border,
-                      borderLeftColor: block.isLive ? palette.dot : palette.border,
-                      borderLeftWidth: block.isLive ? 4 : 2,
-                      opacity:         block.isDone ? 0.6 : 1,
+                      opacity:         block.isDone && !block.isLive ? 0.6 : 1,
                     },
                     block.isLive && styles.blockLive,
-                  ]}
+                   ]}
                 >
                   {/* Status badge — top row */}
-                  <View style={styles.blockHeader}>
-                    {showName && (
-                      <Text
-                        style={[styles.blockName, { color: palette.textColor }]}
-                        numberOfLines={1}
-                      >
-                        {block.name}
-                      </Text>
-                    )}
-                    {block.isDone && (
-                      <Text style={[styles.doneCheck, { color: palette.dot }]}>✓</Text>
-                    )}
-                  </View>
+                  {(showName || block.isDone) && (
+                    <View style={styles.blockHeader}>
+                      {showName && (
+                        <Text
+                          style={[styles.blockName, { color: palette.dot }]}
+                          numberOfLines={1}
+                        >
+                          {block.name}
+                        </Text>
+                      )}
+                      {block.isDone && (
+                        <Text style={[styles.doneCheck, { color: palette.dot }]}>✓</Text>
+                      )}
+                    </View>
+                  )}
 
                   {showDuration && (
                     <Text style={[styles.blockDuration, { color: palette.dot }]}>
@@ -400,13 +400,13 @@ const styles = StyleSheet.create({
   // Session block
   block: {
     position:        'absolute',
-    borderWidth:     1.5,
-    borderRadius:    10,
-    borderLeftWidth: 2,
-    padding:         6,
+    borderWidth:     1,
+    borderRadius:    6,
+    padding:         4,
     overflow:        'hidden',
   },
   blockLive: {
+    padding:         0,
     shadowColor:    '#7C5CFC',
     shadowOffset:   { width: 0, height: 0 },
     shadowOpacity:  0.25,
