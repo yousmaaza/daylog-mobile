@@ -21,15 +21,6 @@
       },
       "package": "com.daylog.mobile"
     },
-    "plugins": [
-      [
-        "expo-notifications",
-        {
-          "color": "#7C5CFC",
-          "iosDisplayInForeground": false
-        }
-      ]
-    ],
     "extra": {
       "eas": {
         "projectId": "8f667733-713a-4cd9-89f2-7b41dfcfc8e5"
