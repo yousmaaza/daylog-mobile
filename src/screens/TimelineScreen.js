@@ -1,0 +1,339 @@
+import React, { useRef, useEffect, useMemo } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useTaskContext } from '../context/TaskContext'
+import { COLORS, HOUR_H, TIMELINE_START, TIMELINE_END, TASK_PALETTE, DAY_FULL, MONTH_FULL } from '../constants'
+import { toKey, formatShort, formatLive, getTaskStatus } from '../utils'
+import WeekPicker from '../components/WeekPicker'
+
+const LABEL_W = 52
+
+function buildColumns(blocks) {
+  const sorted = [...blocks].sort((a, b) => a.startY - b.startY)
+  const cols = []
+  return sorted.map(block => {
+    let colIdx = cols.findIndex(col => {
+      const last = col[col.length - 1]
+      return last.realEndY <= block.startY + 0.5
+    })
+    if (colIdx === -1) {
+      colIdx = cols.length
+      cols.push([])
+    }
+    cols[colIdx].push({ realEndY: block.realEndY })
+    return { ...block, col: colIdx }
+  })
+}
+
+export default function TimelineScreen() {
+  const insets = useSafeAreaInsets()
+  const { width: screenWidth } = useWindowDimensions()
+  const { tasks, darkMode, tick, selDate, weekStart, prevWeek, nextWeek, selectDay, toggleDarkMode } = useTaskContext()
+
+  const C         = darkMode ? COLORS.dark : COLORS.light
+  const scrollRef = useRef(null)
+  const now       = Date.now()
+  const todayKey  = toKey(new Date())
+  const timelineW = screenWidth - LABEL_W - 16
+
+  const nowDate  = new Date(now)
+  const nowHours = nowDate.getHours() + nowDate.getMinutes() / 60 + nowDate.getSeconds() / 3600
+  const nowTop   = (nowHours - TIMELINE_START) * HOUR_H
+  const totalH   = (TIMELINE_END - TIMELINE_START) * HOUR_H
+
+  useEffect(() => {
+    if (selDate !== todayKey) return
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: Math.max(0, nowTop - 180), animated: true })
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [selDate, todayKey])
+
+  const dayTasks = tasks[selDate] ?? []
+
+  const rawBlocks = useMemo(() => {
+    const blocks = []
+    const liveNowTop = (nowHours - TIMELINE_START) * HOUR_H
+
+    dayTasks.forEach((task, taskIdx) => {
+      const colorIdx = task.colorIdx ?? (taskIdx % TASK_PALETTE.length)
+      task.sessions.forEach(sess => {
+        const start  = new Date(sess.startTime)
+        const end    = sess.endTime ? new Date(sess.endTime) : new Date(now)
+        const startH = start.getHours() + start.getMinutes() / 60 + start.getSeconds() / 3600
+        const endH   = end.getHours()   + end.getMinutes()   / 60 + end.getSeconds()   / 3600
+
+        const clampedStart = Math.max(startH, TIMELINE_START)
+        const startY = (clampedStart - TIMELINE_START) * HOUR_H
+
+        let height, realEndY
+        if (!sess.endTime) {
+          const liveEndY = Math.max(liveNowTop, startY)
+          height   = liveEndY - startY
+          realEndY = liveEndY
+        } else {
+          const clampedEnd = Math.min(endH, TIMELINE_END)
+          if (clampedEnd <= clampedStart) return
+          const rawH = (clampedEnd - clampedStart) * HOUR_H
+          height   = Math.max(rawH, 2)
+          realEndY = startY + rawH
+        }
+
+        const blockId = sess.id ? `${sess.id}` : `${task.id}-${sess.startTime}`
+        blocks.push({
+          id: blockId, name: task.name, colorIdx,
+          isLive: !sess.endTime,
+          startY, height, realEndY,
+          startTime: sess.startTime, endTime: sess.endTime,
+        })
+      })
+    })
+    return blocks
+  }, [dayTasks, now, nowHours])
+
+  const blocksWithCols = useMemo(() => buildColumns(rawBlocks), [rawBlocks])
+
+  const numColsForBlock = useMemo(() => {
+    return blocksWithCols.map(block => {
+      const overlapping = blocksWithCols.filter(b =>
+        b.startY < block.realEndY - 0.5 && b.realEndY > block.startY + 0.5
+      )
+      return Math.max(...overlapping.map(b => b.col + 1), 1)
+    })
+  }, [blocksWithCols])
+
+  const hours = useMemo(() => {
+    const arr = []
+    for (let h = TIMELINE_START; h <= TIMELINE_END; h++) arr.push(h)
+    return arr
+  }, [])
+
+  const selDateObj = new Date(selDate + 'T12:00:00')
+  const dayLabel   = `${DAY_FULL[selDateObj.getDay()]}, ${selDateObj.getDate()} ${MONTH_FULL[selDateObj.getMonth()]}`
+
+  return (
+    <View style={[styles.container, { backgroundColor: C.bgApp }]}>
+
+      {/* Header */}
+      <View style={[
+        styles.header,
+        { backgroundColor: C.bgApp, paddingTop: insets.top + 14 },
+      ]}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.title, { color: C.inkPrimary }]}>Timeline</Text>
+          <Text style={[styles.dayLabel, { color: C.inkMuted }]}>{dayLabel}</Text>
+        </View>
+        <TouchableOpacity
+          onPress={toggleDarkMode}
+          style={[styles.themeBtn, { backgroundColor: C.bgPanel }]}
+        >
+          <Text style={{ fontSize: 17 }}>{darkMode ? '☀️' : '🌙'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Week picker */}
+      <WeekPicker
+        weekStart={weekStart}
+        selDate={selDate}
+        tasks={tasks}
+        colors={C}
+        onPrevWeek={prevWeek}
+        onNextWeek={nextWeek}
+        onSelectDay={selectDay}
+      />
+
+      {/* Timeline */}
+      <ScrollView
+        ref={scrollRef}
+        style={{ flex: 1, backgroundColor: C.bgApp }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}
+      >
+        <View style={{ height: totalH, position: 'relative', marginTop: 8 }}>
+
+          {/* Hour rows */}
+          {hours.map(h => {
+            const top    = (h - TIMELINE_START) * HOUR_H
+            const label  = h === 12 ? '12' : h > 12 ? `${h - 12}` : `${h}`
+            const suffix = h >= 12 ? 'pm' : 'am'
+            return (
+              <View
+                key={h}
+                style={[styles.hourRow, { top, borderTopColor: C.border }]}
+              >
+                <View style={styles.hourLabelWrap}>
+                  <Text style={[styles.hourNum, { color: C.inkMuted }]}>{label}</Text>
+                  <Text style={[styles.hourSuffix, { color: C.inkFaint }]}>{suffix}</Text>
+                </View>
+                <View style={[styles.hourLine, { backgroundColor: C.border }]} />
+              </View>
+            )
+          })}
+
+          {/* Session blocks */}
+          <View style={{ position: 'absolute', top: 0, left: LABEL_W, right: 8, bottom: 0 }}>
+            {blocksWithCols.map((block, idx) => {
+              const numCols  = numColsForBlock[idx]
+              const colWidth = timelineW / numCols
+              const leftOff  = block.col * colWidth
+              const palette  = TASK_PALETTE[block.colorIdx]
+              const sessionMs = block.endTime
+                ? block.endTime - block.startTime
+                : now - block.startTime
+              const showText = block.height >= 24
+
+              return (
+                <View
+                  key={block.id}
+                  style={{
+                    position:        'absolute',
+                    top:             block.startY,
+                    height:          Math.max(block.height, 2),
+                    left:            leftOff + 3,
+                    width:           colWidth - 6,
+                    backgroundColor: palette.bg,
+                    borderWidth:     1.5,
+                    borderColor:     palette.border,
+                    borderRadius:    12,
+                    borderLeftWidth: 4,
+                    borderLeftColor: palette.dot,
+                    padding:         6,
+                    overflow:        'hidden',
+                  }}
+                >
+                  {showText && (
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: palette.textColor, letterSpacing: 0.2 }} numberOfLines={1}>
+                      {block.name}
+                    </Text>
+                  )}
+                  {showText && block.height >= 42 && (
+                    <Text style={{ fontSize: 10, color: palette.dot, opacity: 0.75, fontFamily: 'monospace', marginTop: 2 }}>
+                      {formatShort(sessionMs)}
+                    </Text>
+                  )}
+                </View>
+              )
+            })}
+
+            {/* Live session timer pointer */}
+            {blocksWithCols.filter(b => b.isLive).map(block => {
+              const palette   = TASK_PALETTE[block.colorIdx]
+              const sessionMs = now - block.startTime
+              const numCols   = numColsForBlock[blocksWithCols.indexOf(block)]
+              const colWidth  = timelineW / numCols
+              const leftOff   = block.col * colWidth
+              return (
+                <View
+                  key={`ptr-${block.id}`}
+                  style={{
+                    position:      'absolute',
+                    top:           nowTop + 4,
+                    left:          leftOff + 3,
+                    width:         colWidth - 6,
+                    flexDirection: 'row',
+                    alignItems:    'center',
+                    gap:           4,
+                  }}
+                >
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: palette.dot }} />
+                  <Text style={{ fontSize: 10, color: palette.dot, fontWeight: '700', fontFamily: 'monospace' }} numberOfLines={1}>
+                    {formatLive(sessionMs)}
+                  </Text>
+                </View>
+              )
+            })}
+
+            {/* Current time line */}
+            {selDate === todayKey && nowTop >= 0 && nowTop <= totalH && (
+              <View style={{
+                position:        'absolute',
+                top:             nowTop,
+                left:            -LABEL_W,
+                right:           0,
+                height:          2,
+                backgroundColor: C.amber,
+                opacity:         0.7,
+                zIndex:          10,
+              }}>
+                <View style={{
+                  position:        'absolute',
+                  left:            LABEL_W - 4,
+                  top:             -4,
+                  width:           10,
+                  height:          10,
+                  borderRadius:    5,
+                  backgroundColor: C.amber,
+                }} />
+              </View>
+            )}
+          </View>
+
+        </View>
+      </ScrollView>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  header: {
+    flexDirection:    'row',
+    alignItems:       'flex-start',
+    justifyContent:   'space-between',
+    paddingHorizontal: 20,
+    paddingBottom:    14,
+  },
+  title: {
+    fontSize:   28,
+    fontWeight: '800',
+  },
+  dayLabel: {
+    fontSize:   13,
+    fontWeight: '500',
+    marginTop:   4,
+  },
+  themeBtn: {
+    width:          40,
+    height:         40,
+    borderRadius:   20,
+    alignItems:     'center',
+    justifyContent: 'center',
+    shadowColor:    '#000',
+    shadowOffset:   { width: 0, height: 2 },
+    shadowOpacity:  0.08,
+    shadowRadius:   8,
+    elevation:      2,
+  },
+  hourRow: {
+    position:      'absolute',
+    left:          0,
+    right:         0,
+    height:        HOUR_H,
+    flexDirection: 'row',
+    alignItems:    'flex-start',
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  hourLabelWrap: {
+    width:          LABEL_W,
+    flexDirection:  'row',
+    alignItems:     'baseline',
+    justifyContent: 'flex-end',
+    paddingRight:   10,
+    paddingTop:     4,
+    gap:             2,
+  },
+  hourNum: {
+    fontSize:   12,
+    fontWeight: '600',
+    lineHeight: 16,
+  },
+  hourSuffix: {
+    fontSize:   9,
+    lineHeight: 14,
+  },
+  hourLine: {
+    flex:      1,
+    height:    StyleSheet.hairlineWidth,
+    marginTop: 7,
+  },
+})

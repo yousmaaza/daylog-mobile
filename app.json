@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Daylog",
+    "slug": "daylog-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#ECEAE3"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.daylog.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ECEAE3"
+      },
+      "package": "com.daylog.mobile"
+    }
+  }
+}
