@@ -10,7 +10,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.daylog.mobile"
+      "bundleIdentifier": "com.daylog.mobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
