@@ -31,33 +31,48 @@ A fully offline time-tracking app for iOS and Android, built with React Native +
 
 ### Prerequisites
 
-- Node.js 20+ (required by React Native 0.81.5 / Metro 0.83)
-- Expo Go app on your physical device (scan QR code to run instantly)
-- iOS simulator: Xcode
-- Android emulator: Android Studio
+- **Node.js 18** — obligatoire. Node 20+ casse la résolution des modules Metro (`toReversed is not a function`)
+- **nvm** — recommandé pour gérer la version de Node
+- Expo Go sur ton téléphone (scanner le QR code pour tester directement)
+- iOS simulator : Xcode
+- Android emulator : Android Studio
 
-### Install
+### 1. Basculer sur Node 18
 
 ```bash
-git clone <repo-url>
-cd daylog-mobile
+nvm use 18
+```
+
+> Si Node 18 n'est pas encore installé :
+> ```bash
+> nvm install 18
+> nvm use 18
+> ```
+
+Le fichier `.nvmrc` à la racine contient `18`, donc `nvm use` seul suffit quand tu es dans le dossier du projet.
+
+### 2. Installer les dépendances
+
+```bash
 npm install --legacy-peer-deps
 ```
 
-### Run
+> `--legacy-peer-deps` est **obligatoire** — les dépendances Expo ont des conflits de peer deps entre elles.
+
+### 3. Lancer l'application
 
 ```bash
-# Start Metro bundler
+# Metro bundler (QR code pour Expo Go)
 npm start
 
-# iOS simulator
+# Simulateur iOS
 npm run ios
 
-# Android emulator
+# Émulateur Android
 npm run android
 ```
 
-Scan the QR code with **Expo Go** to run on a physical device.
+Scanne le QR code avec **Expo Go** pour tester sur un appareil physique.
 
 ## Project Structure
 
@@ -119,16 +134,46 @@ eas build --platform android --profile preview
 eas build --platform ios --profile preview
 ```
 
-## Notes
+## Vérification du bundle
 
-### Node version
-
-SDK 54 + React Native 0.81.5 require **Node 20+**. If you use nvm:
+Après une modification majeure, vérifier qu'il n'y a pas d'erreurs :
 
 ```bash
-nvm install 20
-nvm alias default 20
+npx expo export --platform ios --no-minify
 ```
+
+Résultat attendu : `711 modules`, 0 erreurs.
+
+## Erreurs fréquentes
+
+### `toReversed is not a function` ou erreur Metro au démarrage
+**Cause** : Node 20+ au lieu de Node 18.
+```bash
+nvm use 18
+```
+
+### `npm install` échoue avec des conflits de peer deps
+```bash
+npm install --legacy-peer-deps
+```
+
+### Crash au lancement sur iOS 26 (`sheetAllowedDetents`)
+**Cause** : `enableScreens` non désactivé.
+Vérifier que les deux premières lignes de `App.js` sont bien :
+```js
+import { enableScreens } from 'react-native-screens'
+enableScreens(false)
+// ← tous les autres imports après
+```
+
+### `expo: command not found`
+Utiliser `npx` à la place :
+```bash
+npx expo start
+npx expo export --platform ios --no-minify
+```
+
+## Notes
 
 ### Google Sign-In
 
@@ -140,4 +185,4 @@ The Google OAuth button currently shows a mock UI (name + email form). To enable
 
 ### Peer deps
 
-Always use `--legacy-peer-deps` when running `npm install` — some transitive dependencies have peer dep conflicts.
+Toujours utiliser `--legacy-peer-deps` avec `npm install` — les dépendances ont des conflits de peer deps entre elles.

@@ -12,6 +12,7 @@ import { StatusBar } from 'expo-status-bar'
 import Svg, { Path, Rect, Circle, Line } from 'react-native-svg'
 
 import { TaskProvider, useTaskContext } from './src/context/TaskContext'
+import { useTaskNotification } from './src/hooks/useTaskNotification'
 import LoginScreen    from './src/screens/LoginScreen'
 import TodayScreen    from './src/screens/TodayScreen'
 import TimelineScreen from './src/screens/TimelineScreen'
@@ -77,7 +78,8 @@ const RIGHT_TABS = [
 function AppContent() {
   const { width, height } = useWindowDimensions()
   const insets   = useSafeAreaInsets()
-  const { darkMode, addTask, user, loaded } = useTaskContext()
+  const { darkMode, addTask, user, loaded, tasks, tick } = useTaskContext()
+  useTaskNotification(tasks, tick)
   const C = darkMode ? COLORS.dark : COLORS.light
 
   const pagerRef = useRef(null)

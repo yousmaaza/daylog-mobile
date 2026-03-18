@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useMemo } from 'react'
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, useWindowDimensions,
+  StyleSheet, useWindowDimensions, Animated,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTaskContext } from '../context/TaskContext'
@@ -12,8 +12,9 @@ import {
 import { toKey, formatShort, formatLive } from '../utils'
 import WeekPicker from '../components/WeekPicker'
 
-const LABEL_W    = 52
-const NOW_COLOR  = '#F43F5E'   // red — same as web
+const LABEL_W   = 52
+const NOW_COLOR = '#F43F5E'
+const BLOCK_MIN = 32   // minimum block height so new tasks are always visible
 
 // ── Column layout (no overlap) ────────────────────────────────────────────────
 
@@ -34,6 +35,35 @@ function buildColumns(blocks) {
   })
 }
 
+// ── Live pulse indicator ───────────────────────────────────────────────────────
+
+function LiveDot({ color }) {
+  const anim = useRef(new Animated.Value(0.3)).current
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, { toValue: 1,   duration: 800, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
+    )
+    loop.start()
+    return () => loop.stop()
+  }, [anim])
+
+  return (
+    <Animated.View
+      style={{
+        width: 6, height: 6, borderRadius: 3,
+        backgroundColor: color,
+        opacity: anim,
+        position: 'absolute',
+        top: 5, right: 5,
+      }}
+    />
+  )
+}
+
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function TimelineScreen() {
@@ -49,7 +79,7 @@ export default function TimelineScreen() {
   const scrollRef = useRef(null)
 
   // `tick` drives live updates — recalculate `now` every second
-  const now       = Date.now()     // fresh each render (tick re-renders this component)
+  const now       = Date.now()
   const todayKey  = toKey(new Date())
   const timelineW = screenWidth - LABEL_W - 16
 
@@ -69,8 +99,7 @@ export default function TimelineScreen() {
 
   const dayTasks = tasks[selDate] ?? []
 
-  // ── Build session blocks ────────────────────────────────────────────────────
-  // `tick` is a dep so rawBlocks recomputes every second (live heights update)
+  // ── Build session blocks ─────────────────────────────────────────────────
   const rawBlocks = useMemo(() => {
     const liveNowTop = (nowHours - TIMELINE_START) * HOUR_H
     const blocks = []
@@ -102,7 +131,8 @@ export default function TimelineScreen() {
         const blockId = sess.id ? `${sess.id}` : `${task.id}-${sess.startTime}`
         blocks.push({
           id: blockId, name: task.name, colorIdx,
-          isLive: !sess.endTime,
+          isLive:  !sess.endTime,
+          isDone:  task.done,
           startY, height, realEndY,
           startTime: sess.startTime, endTime: sess.endTime,
         })
@@ -110,7 +140,7 @@ export default function TimelineScreen() {
     })
     return blocks
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dayTasks, tick])   // tick ensures live heights update every second
+  }, [dayTasks, tick])
 
   const blocksWithCols = useMemo(() => buildColumns(rawBlocks), [rawBlocks])
 
@@ -187,20 +217,20 @@ export default function TimelineScreen() {
             )
           })}
 
-          {/* ── Session blocks + pointers ─────────────────────────────────── */}
+          {/* ── Session blocks ────────────────────────────────────────────── */}
           <View style={{ position: 'absolute', top: 0, left: LABEL_W, right: 8, bottom: 0 }}>
 
-            {/* Blocks */}
             {blocksWithCols.map((block, idx) => {
-              const numCols   = numColsForBlock[idx]
-              const colWidth  = timelineW / numCols
-              const leftOff   = block.col * colWidth
-              const palette   = TASK_PALETTE[block.colorIdx]
-              const sessionMs = block.endTime
+              const numCols    = numColsForBlock[idx]
+              const colWidth   = timelineW / numCols
+              const leftOff    = block.col * colWidth
+              const palette    = TASK_PALETTE[block.colorIdx]
+              const blockH     = Math.max(block.height, BLOCK_MIN)
+              const sessionMs  = block.endTime
                 ? block.endTime - block.startTime
                 : now - block.startTime
-              const showName     = block.height >= 24
-              const showDuration = block.height >= 48
+              const showName     = true              // always show — BLOCK_MIN guarantees room
+              const showDuration = blockH >= 52
 
               return (
                 <View
@@ -209,34 +239,46 @@ export default function TimelineScreen() {
                     styles.block,
                     {
                       top:             block.startY,
-                      height:          Math.max(block.height, 3),
+                      height:          blockH,
                       left:            leftOff + 3,
                       width:           colWidth - 6,
-                      backgroundColor: palette.bg,
+                      backgroundColor: block.isDone ? `${palette.bg}88` : palette.bg,
                       borderColor:     palette.border,
-                      borderLeftColor: palette.dot,
+                      borderLeftColor: block.isLive ? palette.dot : palette.border,
+                      borderLeftWidth: block.isLive ? 4 : 2,
+                      opacity:         block.isDone ? 0.6 : 1,
                     },
                     block.isLive && styles.blockLive,
                   ]}
                 >
-                  {showName && (
-                    <Text
-                      style={[styles.blockName, { color: palette.textColor }]}
-                      numberOfLines={1}
-                    >
-                      {block.name}
-                    </Text>
-                  )}
+                  {/* Status badge — top row */}
+                  <View style={styles.blockHeader}>
+                    {showName && (
+                      <Text
+                        style={[styles.blockName, { color: palette.textColor }]}
+                        numberOfLines={1}
+                      >
+                        {block.name}
+                      </Text>
+                    )}
+                    {block.isDone && (
+                      <Text style={[styles.doneCheck, { color: palette.dot }]}>✓</Text>
+                    )}
+                  </View>
+
                   {showDuration && (
                     <Text style={[styles.blockDuration, { color: palette.dot }]}>
                       {formatShort(sessionMs)}
                     </Text>
                   )}
+
+                  {/* Animated live pulse dot */}
+                  {block.isLive && <LiveDot color={palette.dot} />}
                 </View>
               )
             })}
 
-            {/* Live session pointers — name + bar + live timer (matches web) */}
+            {/* ── Live session pointers — name + bar + live timer ──────────── */}
             {blocksWithCols
               .map((block, idx) => ({ block, idx }))
               .filter(({ block }) => block.isLive)
@@ -255,24 +297,17 @@ export default function TimelineScreen() {
                       { top: nowTop + 5, left: leftOff + 3, width: colWidth - 6 },
                     ]}
                   >
-                    {/* Dot */}
                     <View style={[styles.pointerDot, {
                       backgroundColor: palette.dot,
                       shadowColor:     palette.dot,
                     }]} />
-
-                    {/* Task name */}
                     <Text
                       style={[styles.pointerName, { color: C.inkPrimary }]}
                       numberOfLines={1}
                     >
                       {block.name}
                     </Text>
-
-                    {/* Separator */}
                     <View style={[styles.pointerBar, { backgroundColor: C.inkFaint }]} />
-
-                    {/* Live timer */}
                     <Text style={[styles.pointerTime, { color: palette.dot }]}>
                       {formatLive(sessionMs)}
                     </Text>
@@ -367,17 +402,33 @@ const styles = StyleSheet.create({
     position:        'absolute',
     borderWidth:     1.5,
     borderRadius:    10,
-    borderLeftWidth: 4,
-    padding:         5,
+    borderLeftWidth: 2,
+    padding:         6,
     overflow:        'hidden',
   },
   blockLive: {
-    opacity: 0.95,
+    shadowColor:    '#7C5CFC',
+    shadowOffset:   { width: 0, height: 0 },
+    shadowOpacity:  0.25,
+    shadowRadius:   6,
+    elevation:      3,
+  },
+  blockHeader: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+    gap:             4,
   },
   blockName: {
-    fontSize:    10,
-    fontWeight:  '700',
-    letterSpacing: 0.1,
+    fontSize:      10,
+    fontWeight:    '700',
+    letterSpacing:  0.1,
+    flex:           1,
+  },
+  doneCheck: {
+    fontSize:   11,
+    fontWeight: '700',
+    flexShrink: 0,
   },
   blockDuration: {
     fontSize:   9,
@@ -386,7 +437,7 @@ const styles = StyleSheet.create({
     opacity:    0.75,
   },
 
-  // Live pointer label (name + bar + timer — matches web)
+  // Live pointer label (name + bar + timer)
   pointer: {
     position:       'absolute',
     flexDirection:  'row',
@@ -411,15 +462,15 @@ const styles = StyleSheet.create({
     flexGrow:   1,
   },
   pointerBar: {
-    width:     1,
-    height:    10,
+    width:      1,
+    height:     10,
     flexShrink: 0,
   },
   pointerTime: {
-    fontSize:      10,
-    fontWeight:    '600',
-    fontVariant:   ['tabular-nums'],
-    flexShrink:    0,
+    fontSize:    10,
+    fontWeight:  '600',
+    fontVariant: ['tabular-nums'],
+    flexShrink:  0,
   },
 
   // Current time line — red
