@@ -6,7 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path, Circle, Rect } from 'react-native-svg'
 import { useTaskContext } from '../context/TaskContext'
-import { COLORS, DEFAULT_TAGS } from '../constants'
+import { COLORS, DEFAULT_TAGS, getTaskPalette } from '../constants'
 import { getTotalMs, formatShort } from '../utils'
 
 // ── Small chevron icon ────────────────────────────────────────────────────────
@@ -149,8 +149,9 @@ export default function ProfileScreen() {
         {showFavorites && favoriteTasks.length > 0 && (
           <View style={styles.favoritesList}>
             {favoriteTasks.map((task, i) => {
-              const palette  = TASK_PALETTE[task.colorIdx ?? (i % TASK_PALETTE.length)]
-              const tagItems = (task.tags ?? []).map(id => DEFAULT_TAGS.find(t => t.id === id)).filter(Boolean)
+              const palette  = getTaskPalette(task)
+              const tagId    = task.tagId || (task.tags && task.tags[0]) || 'other'
+              const tagItem  = DEFAULT_TAGS.find(t => t.id === tagId)
               const ms       = getTotalMs(task, Date.now())
               return (
                 <View
@@ -166,13 +167,11 @@ export default function ProfileScreen() {
                     <Text style={[styles.favName, { color: C.inkPrimary }]} numberOfLines={1}>
                       {task.name}
                     </Text>
-                    {tagItems.length > 0 && (
+                    {tagItem && (
                       <View style={styles.favTags}>
-                        {tagItems.map(tag => (
-                          <View key={tag.id} style={[styles.miniTag, { backgroundColor: tag.bg }]}>
-                            <Text style={[styles.miniTagText, { color: tag.color }]}>{tag.label}</Text>
-                          </View>
-                        ))}
+                        <View style={[styles.miniTag, { backgroundColor: tagItem.bg }]}>
+                          <Text style={[styles.miniTagText, { color: tagItem.dot }]}>{tagItem.label}</Text>
+                        </View>
                       </View>
                     )}
                   </View>
