@@ -245,10 +245,10 @@ export default function TimelineScreen() {
                       height:          blockH,
                       left:            leftOff + 3,
                       width:           colWidth - 6,
-                      backgroundColor: block.isLive ? palette.dot : (block.isDone ? `${palette.bg}88` : palette.bg),
+                      backgroundColor: block.isLive ? palette.dot : palette.bg,
                       borderColor:     palette.border,
                       padding:         isTiny || block.isLive ? 0 : 4,
-                      opacity:         block.isDone && !block.isLive ? 0.6 : 1,
+                      opacity:         block.isDone && !block.isLive ? 0.5 : 1,
                     },
                     block.isLive && styles.blockLive,
                    ]}
