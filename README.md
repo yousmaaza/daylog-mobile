@@ -7,7 +7,7 @@ A fully offline time-tracking app for iOS and Android, built with React Native +
 ## Features
 
 - **Task tracking** — start, pause, and complete tasks with automatic time chaining (no gaps between sessions)
-- **Timeline view** — visual hourly timeline of your day
+- **Timeline view** — live hourly timeline with real-time session blocks and current-time indicator
 - **Stats** — donut chart and daily breakdown of time spent per task
 - **Tags** — label tasks with Work, Sport, Personal, Health, Study, Home, Shopping, or Other
 - **Favorites** — heart any task to pin it to your Profile
@@ -21,27 +21,27 @@ A fully offline time-tracking app for iOS and Android, built with React Native +
 
 | Layer | Library |
 |---|---|
-| Framework | React Native 0.76.9 + Expo SDK 52 |
+| Framework | React Native 0.81.5 + Expo SDK 54 |
 | Navigation | Horizontal ScrollView (pagingEnabled) — no extra nav library |
-| Storage | @react-native-async-storage/async-storage |
-| Icons | react-native-svg (custom SVG components) |
-| Safe area | react-native-safe-area-context |
+| Storage | @react-native-async-storage/async-storage 2.2.0 |
+| Icons | react-native-svg 15.12.1 (custom SVG components) |
+| Safe area | react-native-safe-area-context 5.6.x |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- Expo CLI: `npm install -g expo-cli`
-- iOS: Xcode + Simulator **or** Expo Go on a physical device
-- Android: Android Studio + Emulator **or** Expo Go on a physical device
+- Node.js 20+ (required by React Native 0.81.5 / Metro 0.83)
+- Expo Go app on your physical device (scan QR code to run instantly)
+- iOS simulator: Xcode
+- Android emulator: Android Studio
 
 ### Install
 
 ```bash
 git clone <repo-url>
 cd daylog-mobile
-npm install
+npm install --legacy-peer-deps
 ```
 
 ### Run
@@ -82,7 +82,7 @@ daylog-mobile/
 │   └── screens/
 │       ├── LoginScreen.js      # Google sign-in UI + guest mode
 │       ├── TodayScreen.js      # Main task list for selected day
-│       ├── TimelineScreen.js   # Hourly timeline (6am–11pm)
+│       ├── TimelineScreen.js   # Hourly timeline (6am–11pm) with live updates
 │       ├── StatsScreen.js      # Daily stats and charts
 │       └── ProfileScreen.js    # User card, favorites, templates, settings
 ```
@@ -92,6 +92,10 @@ daylog-mobile/
 ### Task chaining
 
 When you start a new task, its session begins at the `endTime` of the last session across all tasks that day — ensuring zero gaps in the timeline.
+
+### Live timeline
+
+The timeline updates every second. Active sessions grow in real time, with a live name + duration pointer anchored to the current-time line.
 
 ### Favorites
 
@@ -117,6 +121,15 @@ eas build --platform ios --profile preview
 
 ## Notes
 
+### Node version
+
+SDK 54 + React Native 0.81.5 require **Node 20+**. If you use nvm:
+
+```bash
+nvm install 20
+nvm alias default 20
+```
+
 ### Google Sign-In
 
 The Google OAuth button currently shows a mock UI (name + email form). To enable real Google OAuth:
@@ -125,6 +138,6 @@ The Google OAuth button currently shows a mock UI (name + email form). To enable
 2. Create credentials at [console.cloud.google.com](https://console.cloud.google.com)
 3. Replace `handleGooglePress` in `src/screens/LoginScreen.js` with `Google.useAuthRequest`
 
-### iOS 26 Crash Fix
+### Peer deps
 
-`enableScreens(false)` is called at the top of `App.js` to prevent a crash in react-native-screens 3.37.0 on iOS 26 where `sheetAllowedDetents` receives a string instead of a float.
+Always use `--legacy-peer-deps` when running `npm install` — some transitive dependencies have peer dep conflicts.

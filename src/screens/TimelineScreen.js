@@ -1,12 +1,21 @@
 import React, { useRef, useEffect, useMemo } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native'
+import {
+  View, Text, ScrollView, TouchableOpacity,
+  StyleSheet, useWindowDimensions,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTaskContext } from '../context/TaskContext'
-import { COLORS, HOUR_H, TIMELINE_START, TIMELINE_END, TASK_PALETTE, DAY_FULL, MONTH_FULL } from '../constants'
-import { toKey, formatShort, formatLive, getTaskStatus } from '../utils'
+import {
+  COLORS, HOUR_H, TIMELINE_START, TIMELINE_END,
+  TASK_PALETTE, DAY_FULL, MONTH_FULL,
+} from '../constants'
+import { toKey, formatShort, formatLive } from '../utils'
 import WeekPicker from '../components/WeekPicker'
 
-const LABEL_W = 52
+const LABEL_W    = 52
+const NOW_COLOR  = '#F43F5E'   // red — same as web
+
+// ── Column layout (no overlap) ────────────────────────────────────────────────
 
 function buildColumns(blocks) {
   const sorted = [...blocks].sort((a, b) => a.startY - b.startY)
@@ -25,14 +34,22 @@ function buildColumns(blocks) {
   })
 }
 
+// ── Screen ────────────────────────────────────────────────────────────────────
+
 export default function TimelineScreen() {
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
-  const { tasks, darkMode, tick, selDate, weekStart, prevWeek, nextWeek, selectDay, toggleDarkMode } = useTaskContext()
+  const {
+    tasks, darkMode, tick,
+    selDate, weekStart,
+    prevWeek, nextWeek, selectDay, toggleDarkMode,
+  } = useTaskContext()
 
   const C         = darkMode ? COLORS.dark : COLORS.light
   const scrollRef = useRef(null)
-  const now       = Date.now()
+
+  // `tick` drives live updates — recalculate `now` every second
+  const now       = Date.now()     // fresh each render (tick re-renders this component)
   const todayKey  = toKey(new Date())
   const timelineW = screenWidth - LABEL_W - 16
 
@@ -41,6 +58,7 @@ export default function TimelineScreen() {
   const nowTop   = (nowHours - TIMELINE_START) * HOUR_H
   const totalH   = (TIMELINE_END - TIMELINE_START) * HOUR_H
 
+  // Auto-scroll to current time when viewing today
   useEffect(() => {
     if (selDate !== todayKey) return
     const timer = setTimeout(() => {
@@ -51,9 +69,11 @@ export default function TimelineScreen() {
 
   const dayTasks = tasks[selDate] ?? []
 
+  // ── Build session blocks ────────────────────────────────────────────────────
+  // `tick` is a dep so rawBlocks recomputes every second (live heights update)
   const rawBlocks = useMemo(() => {
-    const blocks = []
     const liveNowTop = (nowHours - TIMELINE_START) * HOUR_H
+    const blocks = []
 
     dayTasks.forEach((task, taskIdx) => {
       const colorIdx = task.colorIdx ?? (taskIdx % TASK_PALETTE.length)
@@ -89,7 +109,8 @@ export default function TimelineScreen() {
       })
     })
     return blocks
-  }, [dayTasks, now, nowHours])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayTasks, tick])   // tick ensures live heights update every second
 
   const blocksWithCols = useMemo(() => buildColumns(rawBlocks), [rawBlocks])
 
@@ -111,14 +132,13 @@ export default function TimelineScreen() {
   const selDateObj = new Date(selDate + 'T12:00:00')
   const dayLabel   = `${DAY_FULL[selDateObj.getDay()]}, ${selDateObj.getDate()} ${MONTH_FULL[selDateObj.getMonth()]}`
 
+  // ── Render ──────────────────────────────────────────────────────────────────
+
   return (
     <View style={[styles.container, { backgroundColor: C.bgApp }]}>
 
-      {/* Header */}
-      <View style={[
-        styles.header,
-        { backgroundColor: C.bgApp, paddingTop: insets.top + 14 },
-      ]}>
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <View style={[styles.header, { backgroundColor: C.bgApp, paddingTop: insets.top + 14 }]}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.title, { color: C.inkPrimary }]}>Timeline</Text>
           <Text style={[styles.dayLabel, { color: C.inkMuted }]}>{dayLabel}</Text>
@@ -131,7 +151,7 @@ export default function TimelineScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Week picker */}
+      {/* ── Week picker ──────────────────────────────────────────────────────── */}
       <WeekPicker
         weekStart={weekStart}
         selDate={selDate}
@@ -142,7 +162,7 @@ export default function TimelineScreen() {
         onSelectDay={selectDay}
       />
 
-      {/* Timeline */}
+      {/* ── Timeline scroll ──────────────────────────────────────────────────── */}
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1, backgroundColor: C.bgApp }}
@@ -151,16 +171,13 @@ export default function TimelineScreen() {
       >
         <View style={{ height: totalH, position: 'relative', marginTop: 8 }}>
 
-          {/* Hour rows */}
+          {/* ── Hour grid ─────────────────────────────────────────────────── */}
           {hours.map(h => {
             const top    = (h - TIMELINE_START) * HOUR_H
             const label  = h === 12 ? '12' : h > 12 ? `${h - 12}` : `${h}`
             const suffix = h >= 12 ? 'pm' : 'am'
             return (
-              <View
-                key={h}
-                style={[styles.hourRow, { top, borderTopColor: C.border }]}
-              >
+              <View key={h} style={[styles.hourRow, { top, borderTopColor: C.border }]}>
                 <View style={styles.hourLabelWrap}>
                   <Text style={[styles.hourNum, { color: C.inkMuted }]}>{label}</Text>
                   <Text style={[styles.hourSuffix, { color: C.inkFaint }]}>{suffix}</Text>
@@ -170,44 +187,48 @@ export default function TimelineScreen() {
             )
           })}
 
-          {/* Session blocks */}
+          {/* ── Session blocks + pointers ─────────────────────────────────── */}
           <View style={{ position: 'absolute', top: 0, left: LABEL_W, right: 8, bottom: 0 }}>
+
+            {/* Blocks */}
             {blocksWithCols.map((block, idx) => {
-              const numCols  = numColsForBlock[idx]
-              const colWidth = timelineW / numCols
-              const leftOff  = block.col * colWidth
-              const palette  = TASK_PALETTE[block.colorIdx]
+              const numCols   = numColsForBlock[idx]
+              const colWidth  = timelineW / numCols
+              const leftOff   = block.col * colWidth
+              const palette   = TASK_PALETTE[block.colorIdx]
               const sessionMs = block.endTime
                 ? block.endTime - block.startTime
                 : now - block.startTime
-              const showText = block.height >= 24
+              const showName     = block.height >= 24
+              const showDuration = block.height >= 48
 
               return (
                 <View
                   key={block.id}
-                  style={{
-                    position:        'absolute',
-                    top:             block.startY,
-                    height:          Math.max(block.height, 2),
-                    left:            leftOff + 3,
-                    width:           colWidth - 6,
-                    backgroundColor: palette.bg,
-                    borderWidth:     1.5,
-                    borderColor:     palette.border,
-                    borderRadius:    12,
-                    borderLeftWidth: 4,
-                    borderLeftColor: palette.dot,
-                    padding:         6,
-                    overflow:        'hidden',
-                  }}
+                  style={[
+                    styles.block,
+                    {
+                      top:             block.startY,
+                      height:          Math.max(block.height, 3),
+                      left:            leftOff + 3,
+                      width:           colWidth - 6,
+                      backgroundColor: palette.bg,
+                      borderColor:     palette.border,
+                      borderLeftColor: palette.dot,
+                    },
+                    block.isLive && styles.blockLive,
+                  ]}
                 >
-                  {showText && (
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: palette.textColor, letterSpacing: 0.2 }} numberOfLines={1}>
+                  {showName && (
+                    <Text
+                      style={[styles.blockName, { color: palette.textColor }]}
+                      numberOfLines={1}
+                    >
                       {block.name}
                     </Text>
                   )}
-                  {showText && block.height >= 42 && (
-                    <Text style={{ fontSize: 10, color: palette.dot, opacity: 0.75, fontFamily: 'monospace', marginTop: 2 }}>
+                  {showDuration && (
+                    <Text style={[styles.blockDuration, { color: palette.dot }]}>
                       {formatShort(sessionMs)}
                     </Text>
                   )}
@@ -215,73 +236,75 @@ export default function TimelineScreen() {
               )
             })}
 
-            {/* Live session timer pointer */}
-            {blocksWithCols.filter(b => b.isLive).map(block => {
-              const palette   = TASK_PALETTE[block.colorIdx]
-              const sessionMs = now - block.startTime
-              const numCols   = numColsForBlock[blocksWithCols.indexOf(block)]
-              const colWidth  = timelineW / numCols
-              const leftOff   = block.col * colWidth
-              return (
-                <View
-                  key={`ptr-${block.id}`}
-                  style={{
-                    position:      'absolute',
-                    top:           nowTop + 4,
-                    left:          leftOff + 3,
-                    width:         colWidth - 6,
-                    flexDirection: 'row',
-                    alignItems:    'center',
-                    gap:           4,
-                  }}
-                >
-                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: palette.dot }} />
-                  <Text style={{ fontSize: 10, color: palette.dot, fontWeight: '700', fontFamily: 'monospace' }} numberOfLines={1}>
-                    {formatLive(sessionMs)}
-                  </Text>
-                </View>
-              )
-            })}
+            {/* Live session pointers — name + bar + live timer (matches web) */}
+            {blocksWithCols
+              .map((block, idx) => ({ block, idx }))
+              .filter(({ block }) => block.isLive)
+              .map(({ block, idx }) => {
+                const palette   = TASK_PALETTE[block.colorIdx]
+                const sessionMs = now - block.startTime
+                const numCols   = numColsForBlock[idx]
+                const colWidth  = timelineW / numCols
+                const leftOff   = block.col * colWidth
 
-            {/* Current time line */}
+                return (
+                  <View
+                    key={`ptr-${block.id}`}
+                    style={[
+                      styles.pointer,
+                      { top: nowTop + 5, left: leftOff + 3, width: colWidth - 6 },
+                    ]}
+                  >
+                    {/* Dot */}
+                    <View style={[styles.pointerDot, {
+                      backgroundColor: palette.dot,
+                      shadowColor:     palette.dot,
+                    }]} />
+
+                    {/* Task name */}
+                    <Text
+                      style={[styles.pointerName, { color: C.inkPrimary }]}
+                      numberOfLines={1}
+                    >
+                      {block.name}
+                    </Text>
+
+                    {/* Separator */}
+                    <View style={[styles.pointerBar, { backgroundColor: C.inkFaint }]} />
+
+                    {/* Live timer */}
+                    <Text style={[styles.pointerTime, { color: palette.dot }]}>
+                      {formatLive(sessionMs)}
+                    </Text>
+                  </View>
+                )
+              })}
+
+            {/* ── Current time line (red, today only) ─────────────────────── */}
             {selDate === todayKey && nowTop >= 0 && nowTop <= totalH && (
-              <View style={{
-                position:        'absolute',
-                top:             nowTop,
-                left:            -LABEL_W,
-                right:           0,
-                height:          2,
-                backgroundColor: C.amber,
-                opacity:         0.7,
-                zIndex:          10,
-              }}>
-                <View style={{
-                  position:        'absolute',
-                  left:            LABEL_W - 4,
-                  top:             -4,
-                  width:           10,
-                  height:          10,
-                  borderRadius:    5,
-                  backgroundColor: C.amber,
-                }} />
+              <View style={[styles.nowLine, { top: nowTop, left: -LABEL_W }]}>
+                <View style={[styles.nowDot, { left: LABEL_W - 5 }]} />
               </View>
             )}
-          </View>
 
+          </View>
         </View>
       </ScrollView>
     </View>
   )
 }
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
   header: {
-    flexDirection:    'row',
-    alignItems:       'flex-start',
-    justifyContent:   'space-between',
+    flexDirection:     'row',
+    alignItems:        'flex-start',
+    justifyContent:    'space-between',
     paddingHorizontal: 20,
-    paddingBottom:    14,
+    paddingBottom:     14,
   },
   title: {
     fontSize:   28,
@@ -304,13 +327,15 @@ const styles = StyleSheet.create({
     shadowRadius:   8,
     elevation:      2,
   },
+
+  // Hour grid
   hourRow: {
-    position:      'absolute',
-    left:          0,
-    right:         0,
-    height:        HOUR_H,
-    flexDirection: 'row',
-    alignItems:    'flex-start',
+    position:       'absolute',
+    left:            0,
+    right:           0,
+    height:          HOUR_H,
+    flexDirection:  'row',
+    alignItems:     'flex-start',
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   hourLabelWrap: {
@@ -318,8 +343,8 @@ const styles = StyleSheet.create({
     flexDirection:  'row',
     alignItems:     'baseline',
     justifyContent: 'flex-end',
-    paddingRight:   10,
-    paddingTop:     4,
+    paddingRight:    10,
+    paddingTop:      4,
     gap:             2,
   },
   hourNum: {
@@ -335,5 +360,87 @@ const styles = StyleSheet.create({
     flex:      1,
     height:    StyleSheet.hairlineWidth,
     marginTop: 7,
+  },
+
+  // Session block
+  block: {
+    position:        'absolute',
+    borderWidth:     1.5,
+    borderRadius:    10,
+    borderLeftWidth: 4,
+    padding:         5,
+    overflow:        'hidden',
+  },
+  blockLive: {
+    opacity: 0.95,
+  },
+  blockName: {
+    fontSize:    10,
+    fontWeight:  '700',
+    letterSpacing: 0.1,
+  },
+  blockDuration: {
+    fontSize:   9,
+    fontWeight: '500',
+    marginTop:  2,
+    opacity:    0.75,
+  },
+
+  // Live pointer label (name + bar + timer — matches web)
+  pointer: {
+    position:       'absolute',
+    flexDirection:  'row',
+    alignItems:     'center',
+    gap:             4,
+    overflow:       'hidden',
+  },
+  pointerDot: {
+    width:         7,
+    height:        7,
+    borderRadius:  3.5,
+    flexShrink:    0,
+    shadowOffset:  { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius:  4,
+    elevation:     3,
+  },
+  pointerName: {
+    fontSize:   10,
+    fontWeight: '700',
+    flexShrink: 1,
+    flexGrow:   1,
+  },
+  pointerBar: {
+    width:     1,
+    height:    10,
+    flexShrink: 0,
+  },
+  pointerTime: {
+    fontSize:      10,
+    fontWeight:    '600',
+    fontVariant:   ['tabular-nums'],
+    flexShrink:    0,
+  },
+
+  // Current time line — red
+  nowLine: {
+    position:        'absolute',
+    right:           0,
+    height:          1.5,
+    backgroundColor: NOW_COLOR,
+    zIndex:          10,
+  },
+  nowDot: {
+    position:        'absolute',
+    top:             -4,
+    width:           10,
+    height:          10,
+    borderRadius:    5,
+    backgroundColor: NOW_COLOR,
+    shadowColor:     NOW_COLOR,
+    shadowOffset:    { width: 0, height: 0 },
+    shadowOpacity:   0.5,
+    shadowRadius:    4,
+    elevation:       4,
   },
 })
