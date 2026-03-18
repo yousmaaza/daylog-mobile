@@ -173,6 +173,13 @@ npx expo start
 npx expo export --platform ios --no-minify
 ```
 
+### Impossible de charger l'application sur Expo Go (Problème réseau / "Something went wrong")
+**Cause** : Votre ordinateur et votre téléphone ne peuvent pas communiquer sur le réseau Wi-Fi local, ou un pare-feu bloque la connexion.
+Ajoutez le flag `--tunnel` pour passer par un pont Internet (Ngrok) contournant les restrictions réseau :
+```bash
+npx expo start --tunnel
+```
+
 ## Notes
 
 ### Google Sign-In

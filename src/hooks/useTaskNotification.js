@@ -1,18 +1,23 @@
 import { useEffect, useRef } from 'react'
-import * as Notifications from 'expo-notifications'
 import { Platform } from 'react-native'
 import { formatLive } from '../utils'
 
 const NOTIF_ID = 'daylog-active-task'
 
-// Don't show banner pop-up when app is in foreground — only show in tray
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert:  false,
-    shouldPlaySound:  false,
-    shouldSetBadge:   false,
-  }),
-})
+let Notifications = null;
+try {
+  Notifications = require('expo-notifications');
+  // Don't show banner pop-up when app is in foreground — only show in tray
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert:  false,
+      shouldPlaySound:  false,
+      shouldSetBadge:   false,
+    }),
+  })
+} catch (err) {
+  console.log('Expo notifications disabled or unavailable:', err);
+}
 
 export function useTaskNotification(tasks, tick) {
   const permRef        = useRef(false)
@@ -21,28 +26,34 @@ export function useTaskNotification(tasks, tick) {
 
   // ── Setup: permissions + Android channel ──────────────────────────────────
   useEffect(() => {
+    if (!Notifications) return
+
     if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('task-timer', {
-        name:           'Task Timer',
-        importance:     Notifications.AndroidImportance.LOW,
-        enableVibrate:  false,
-        sound:          null,
-      }).catch(() => {})
+      try {
+        Notifications.setNotificationChannelAsync('task-timer', {
+          name:           'Task Timer',
+          importance:     Notifications.AndroidImportance.LOW,
+          enableVibrate:  false,
+          sound:          null,
+        }).catch(() => {})
+      } catch (err) {}
     }
 
-    Notifications.requestPermissionsAsync()
-      .then(({ status }) => { permRef.current = status === 'granted' })
-      .catch(() => {})
+    try {
+      Notifications.requestPermissionsAsync()
+        .then(({ status }) => { permRef.current = status === 'granted' })
+        .catch(() => {})
+    } catch (err) {}
 
     return () => {
-      Notifications.dismissNotificationAsync(NOTIF_ID).catch(() => {})
+      if (Notifications) {
+        try { Notifications.dismissNotificationAsync(NOTIF_ID).catch(() => {}) } catch (e) {}
+      }
     }
   }, [])
 
   // ── Update notification every ~30s when a task is live ────────────────────
   useEffect(() => {
-    if (!permRef.current) return
-
     // Find the first live session across all dates
     let activeTask      = null
     let activeStartTime = null
@@ -59,7 +70,9 @@ export function useTaskNotification(tasks, tick) {
     }
 
     if (!activeTask) {
-      Notifications.dismissNotificationAsync(NOTIF_ID).catch(() => {})
+      if (Notifications) {
+        try { Notifications.dismissNotificationAsync(NOTIF_ID).catch(() => {}) } catch (e) {}
+      }
       lastTaskIdRef.current = null
       return
     }
@@ -75,18 +88,22 @@ export function useTaskNotification(tasks, tick) {
     lastTaskIdRef.current = activeTask.id
     lastUpdateRef.current = now
 
-    Notifications.scheduleNotificationAsync({
-      identifier: NOTIF_ID,
-      content: {
-        title:    `⏱ ${activeTask.name}`,
-        body:     `En cours · ${formatLive(elapsed)}`,
-        sticky:   true,
-        sound:    false,
-        color:    '#7C5CFC',
-        data:     { taskId: activeTask.id },
-      },
-      trigger: null,
-    }).catch(() => {})
+    if (Notifications && permRef.current) {
+      try {
+        Notifications.scheduleNotificationAsync({
+          identifier: NOTIF_ID,
+          content: {
+            title:    `⏱ ${activeTask.name}`,
+            body:     `En cours · ${formatLive(elapsed)}`,
+            sticky:   true,
+            sound:    false,
+            color:    '#7C5CFC',
+            data:     { taskId: activeTask.id },
+          },
+          trigger: null,
+        }).catch(() => {})
+      } catch (e) {}
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick, tasks])
 }

@@ -8,26 +8,24 @@ export const USERNAME_KEY  = 'dl-username'
 export const AUTH_KEY      = 'dl-auth'
 
 export const DEFAULT_TAGS = [
-  { id: 'work',     label: 'Work',     color: '#7C5CFC', bg: '#EDE9FF' },
-  { id: 'sport',    label: 'Sport',    color: '#10B981', bg: '#D1FAE5' },
-  { id: 'personal', label: 'Personal', color: '#F472B6', bg: '#FFE8F3' },
-  { id: 'health',   label: 'Health',   color: '#38BDF8', bg: '#E0F7FF' },
-  { id: 'study',    label: 'Study',    color: '#F59E0B', bg: '#FEF3C7' },
-  { id: 'home',     label: 'Home',     color: '#F97316', bg: '#FFE4E1' },
-  { id: 'shopping', label: 'Shopping', color: '#EC4899', bg: '#FCE7F3' },
-  { id: 'other',    label: 'Other',    color: '#8078A0', bg: '#F5F3FF' },
+  { id: 'work',         label: 'Work',         color: '#FFFFFF', bg: '#EDE9FF', border: '#D4CAFC', dot: '#7C5CFC', textColor: '#4C2FB0' },
+  { id: 'sport',        label: 'Sport',        color: '#FFFFFF', bg: '#D1FAE5', border: '#A7F3D0', dot: '#10B981', textColor: '#065F46' },
+  { id: 'meeting',      label: 'Meeting',      color: '#FFFFFF', bg: '#FFF4D6', border: '#FFE9A0', dot: '#F59E0B', textColor: '#92400E' },
+  { id: 'lunch_dinner', label: 'Lunch/Dinner', color: '#FFFFFF', bg: '#E0F7FF', border: '#BAE6FD', dot: '#38BDF8', textColor: '#0369A1' },
+  { id: 'commute',      label: 'Commute',      color: '#FFFFFF', bg: '#E0F2FE', border: '#BAE0FF', dot: '#06B6D4', textColor: '#0E7490' },
+  { id: 'study',        label: 'Study',        color: '#FFFFFF', bg: '#FCE7F3', border: '#F9C4E0', dot: '#EC4899', textColor: '#9D174D' },
+  { id: 'home',         label: 'Home',         color: '#FFFFFF', bg: '#FFE4E1', border: '#FFCDC8', dot: '#F97316', textColor: '#9A3412' },
+  { id: 'personal',     label: 'Personal',     color: '#FFFFFF', bg: '#FFE8F3', border: '#FFC6E4', dot: '#F472B6', textColor: '#BE185D' },
+  { id: 'other',        label: 'Other',        color: '#FFFFFF', bg: '#F5F3FF', border: '#E8E3FF', dot: '#8078A0', textColor: '#5A527A' },
 ]
 
-export const TASK_PALETTE = [
-  { bg: '#EDE9FF', border: '#D4CAFC', dot: '#7C5CFC', textColor: '#4C2FB0' },
-  { bg: '#FFE8F3', border: '#FFC6E4', dot: '#F472B6', textColor: '#BE185D' },
-  { bg: '#FFF4D6', border: '#FFE9A0', dot: '#F59E0B', textColor: '#92400E' },
-  { bg: '#E0F7FF', border: '#BAE6FD', dot: '#38BDF8', textColor: '#0369A1' },
-  { bg: '#D1FAE5', border: '#A7F3D0', dot: '#10B981', textColor: '#065F46' },
-  { bg: '#FFE4E1', border: '#FFCDC8', dot: '#F97316', textColor: '#9A3412' },
-  { bg: '#E0F2FE', border: '#BAE0FF', dot: '#06B6D4', textColor: '#0E7490' },
-  { bg: '#FCE7F3', border: '#F9C4E0', dot: '#EC4899', textColor: '#9D174D' },
-]
+export const getTaskPalette = (task) => {
+  const tagId = task.tagId || (task.tags && task.tags[0]) || 'other'
+  return DEFAULT_TAGS.find(t => t.id === tagId) || DEFAULT_TAGS.find(t => t.id === 'other')
+}
+
+// Keep TASK_PALETTE for old usages that we haven't migrated yet
+export const TASK_PALETTE = DEFAULT_TAGS
 
 export const DAY_SHORT  = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export const DAY_FULL   = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']

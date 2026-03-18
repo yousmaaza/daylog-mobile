@@ -120,9 +120,8 @@ export function useTasks() {
       name:      name.trim(),
       sessions:  [],
       done:      false,
-      colorIdx:  currentDayTasks.length % TASK_PALETTE.length,
       createdAt: Date.now(),
-      tags:      options.tags ?? [],
+      tagId:     options.tagId ?? 'other',
       favorite:  false,
     }
     setTasks(prev => ({ ...prev, [selDate]: [...(prev[selDate] ?? []), task] }))
@@ -153,23 +152,16 @@ export function useTasks() {
     const now = Date.now()
     setTasks(prev => {
       const dayTasks = prev[selDate] ?? []
-      let latestEnd = 0
-      dayTasks.forEach(t => {
-        t.sessions.forEach(s => {
-          if (s.endTime && s.endTime > latestEnd) latestEnd = s.endTime
-        })
-      })
-      const startTime = latestEnd > 0 ? latestEnd : now
       return {
         ...prev,
         [selDate]: dayTasks.map(t => {
           if (t.id === id) {
-            const sessions = t.sessions.map(s => s.endTime ? s : { ...s, endTime: startTime })
-            return { ...t, sessions: [...sessions, { id: uid(), startTime, endTime: null }], done: false }
+            const sessions = t.sessions.map(s => s.endTime ? s : { ...s, endTime: now })
+            return { ...t, sessions: [...sessions, { id: uid(), startTime: now, endTime: null }], done: false }
           }
           const hasLive = t.sessions.some(s => !s.endTime)
           if (hasLive) {
-            return { ...t, sessions: t.sessions.map(s => s.endTime ? s : { ...s, endTime: startTime }) }
+            return { ...t, sessions: t.sessions.map(s => s.endTime ? s : { ...s, endTime: now }) }
           }
           return t
         }),
@@ -209,6 +201,10 @@ export function useTasks() {
     })
   }, [selDate])
 
+  const changeTaskTag = useCallback((id, tagId) => {
+    updateTask(id, t => ({ ...t, tagId }))
+  }, [updateTask])
+
   return {
     tasks, darkMode, loaded, tick,
     selDate, weekStart, selTaskId,
@@ -216,7 +212,7 @@ export function useTasks() {
     setSelTaskId, toggleDarkMode, setUserName,
     login, logout,
     prevWeek, nextWeek, goToday, selectDay,
-    addTask, startTask, pauseTask, doneTask, deleteTask, reorderTasks,
+    addTask, startTask, pauseTask, doneTask, deleteTask, reorderTasks, changeTaskTag,
     addTemplate, removeTemplate,
     toggleFavorite,
   }

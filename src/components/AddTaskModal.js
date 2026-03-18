@@ -9,16 +9,16 @@ import { DEFAULT_TAGS } from '../constants'
 export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClose }) {
   const { templates } = useTaskContext()
   const [value, setValue]         = useState('')
-  const [selectedTags, setSelectedTags] = useState([])
+  const [selectedTagId, setSelectedTagId] = useState('other')
 
   const reset = () => {
     setValue('')
-    setSelectedTags([])
+    setSelectedTagId('other')
   }
 
   const handleAdd = () => {
     if (value.trim()) {
-      onAdd(value.trim(), { tags: selectedTags })
+      onAdd(value.trim(), { tagId: selectedTagId })
       reset()
     }
   }
@@ -28,10 +28,8 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
     onClose()
   }
 
-  const toggleTag = (tagId) => {
-    setSelectedTags(prev =>
-      prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]
-    )
+  const selectTag = (tagId) => {
+    setSelectedTagId(tagId)
   }
 
   return (
@@ -116,18 +114,18 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
             <Text style={[styles.sectionLabel, { color: C.inkMuted }]}>Tags</Text>
             <View style={styles.tagsGrid}>
               {DEFAULT_TAGS.map(tag => {
-                const active = selectedTags.includes(tag.id)
+                const active = selectedTagId === tag.id
                 return (
                   <TouchableOpacity
                     key={tag.id}
                     style={[
                       styles.tagBtn,
                       {
-                        backgroundColor: active ? tag.color : C.bgInput,
-                        borderColor:     active ? tag.color : C.border,
+                        backgroundColor: active ? tag.dot : C.bgInput,
+                        borderColor:     active ? tag.dot : C.border,
                       },
                     ]}
-                    onPress={() => toggleTag(tag.id)}
+                    onPress={() => selectTag(tag.id)}
                     activeOpacity={0.75}
                   >
                     <Text style={[
@@ -153,7 +151,7 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
               styles.addBtnText,
               { color: value.trim() ? '#FFFFFF' : C.inkMuted },
             ]}>
-              Add Task{selectedTags.length > 0 ? ` · ${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}` : ''}
+              Add Task
             </Text>
           </TouchableOpacity>
         </View>

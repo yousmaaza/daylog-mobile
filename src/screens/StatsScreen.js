@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTaskContext } from '../context/TaskContext'
-import { COLORS, TASK_PALETTE } from '../constants'
+import { COLORS, TASK_PALETTE, DEFAULT_TAGS, getTaskPalette } from '../constants'
 import { getTaskStatus, getTotalMs, formatShort, formatLive, toKey, addDays } from '../utils'
 import DonutChart from '../components/DonutChart'
 
@@ -140,6 +140,42 @@ export default function StatsScreen() {
         </View>
       </View>
 
+      {/* Time by Tag */}
+      {filteredTasks.length > 0 && (() => {
+        const tagTimes = DEFAULT_TAGS.map(tag => ({
+          tag,
+          ms: filteredTasks
+              .filter(t => (t.tagId || (t.tags && t.tags[0]) || 'other') === tag.id)
+              .reduce((acc, t) => acc + getTotalMs(t, now), 0)
+        })).filter(item => item.ms > 0).sort((a,b) => b.ms - a.ms)
+
+        if (tagTimes.length === 0) return null
+
+        return (
+          <View style={[styles.card, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 14 }]}>
+            <Text style={[styles.cardTitle, { color: C.inkPrimary }]}>Time by Tag</Text>
+            {tagTimes.map((item, i) => (
+              <View
+                key={item.tag.id}
+                style={[
+                  styles.taskRow,
+                  { borderTopColor: C.border },
+                  i > 0 && { borderTopWidth: StyleSheet.hairlineWidth },
+                ]}
+              >
+                <View style={[styles.taskDot, { backgroundColor: item.tag.dot }]} />
+                <Text style={[styles.taskName, { color: C.inkPrimary }]} numberOfLines={1}>
+                  {item.tag.label}
+                </Text>
+                <Text style={[styles.taskTime, { color: C.inkMuted }]}>
+                  {formatShort(item.ms)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )
+      })()}
+
       {/* Task breakdown */}
       {filteredTasks.length > 0 && (
         <View style={[styles.card, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 14 }]}>
@@ -147,7 +183,7 @@ export default function StatsScreen() {
           {filteredTasks.map((task, i) => {
             const ms      = getTotalMs(task, now)
             const status  = getTaskStatus(task)
-            const palette = TASK_PALETTE[task.colorIdx ?? (i % TASK_PALETTE.length)]
+            const palette = getTaskPalette(task)
             return (
               <View
                 key={task.id}
