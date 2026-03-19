@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   Modal, View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, KeyboardAvoidingView, Platform, Pressable,
@@ -7,18 +7,30 @@ import { useTaskContext } from '../context/TaskContext'
 import { DEFAULT_TAGS } from '../constants'
 
 export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClose }) {
-  const { templates } = useTaskContext()
-  const [value, setValue]         = useState('')
-  const [selectedTags, setSelectedTags] = useState([])
+  const { tasks } = useTaskContext()
+  const [value, setValue]                 = useState('')
+  const [selectedTagId, setSelectedTagId] = useState('other')
+
+  const favoriteTasks = useMemo(() => {
+    const all = []
+    Object.values(tasks).forEach(dayTasks => {
+      dayTasks.forEach(t => { if (t.favorite) all.push(t) })
+    })
+    // deduplicate by name, keep most recent
+    const seen = new Set()
+    return all
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .filter(t => { if (seen.has(t.name)) return false; seen.add(t.name); return true })
+  }, [tasks])
 
   const reset = () => {
     setValue('')
-    setSelectedTags([])
+    setSelectedTagId('other')
   }
 
   const handleAdd = () => {
     if (value.trim()) {
-      onAdd(value.trim(), { tags: selectedTags })
+      onAdd(value.trim(), { tagId: selectedTagId })
       reset()
     }
   }
@@ -28,10 +40,8 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
     onClose()
   }
 
-  const toggleTag = (tagId) => {
-    setSelectedTags(prev =>
-      prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]
-    )
+  const selectTag = (tagId) => {
+    setSelectedTagId(tagId)
   }
 
   return (
@@ -59,36 +69,44 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
             What do you need to get done?
           </Text>
 
-          {/* Template quick picks */}
-          {templates.length > 0 && (
+          {/* Favorites quick pick */}
+          {favoriteTasks.length > 0 && (
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: C.inkMuted }]}>Quick pick</Text>
+              <Text style={[styles.sectionLabel, { color: C.inkMuted }]}>♥ Favorites</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.chipsRow}
               >
-                {templates.map(tpl => (
-                  <TouchableOpacity
-                    key={tpl}
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: value === tpl ? C.amber : C.bgInput,
-                        borderColor:     value === tpl ? C.amber : C.border,
-                      },
-                    ]}
-                    onPress={() => setValue(tpl)}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[
-                      styles.chipText,
-                      { color: value === tpl ? '#FFFFFF' : C.inkSecondary },
-                    ]}>
-                      {tpl}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {favoriteTasks.map(fav => {
+                  const isSelected = value === fav.name
+                  const favTagId   = fav.tagId || 'other'
+                  const tag        = DEFAULT_TAGS.find(t => t.id === favTagId)
+                  return (
+                    <TouchableOpacity
+                      key={fav.id}
+                      style={[
+                        styles.chip,
+                        {
+                          backgroundColor: isSelected ? (tag?.dot ?? C.amber) : C.bgInput,
+                          borderColor:     isSelected ? (tag?.dot ?? C.amber) : C.border,
+                        },
+                      ]}
+                      onPress={() => {
+                        setValue(fav.name)
+                        setSelectedTagId(favTagId)
+                      }}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={[
+                        styles.chipText,
+                        { color: isSelected ? '#FFFFFF' : C.inkSecondary },
+                      ]}>
+                        {fav.name}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
               </ScrollView>
             </View>
           )}
@@ -116,18 +134,18 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
             <Text style={[styles.sectionLabel, { color: C.inkMuted }]}>Tags</Text>
             <View style={styles.tagsGrid}>
               {DEFAULT_TAGS.map(tag => {
-                const active = selectedTags.includes(tag.id)
+                const active = selectedTagId === tag.id
                 return (
                   <TouchableOpacity
                     key={tag.id}
                     style={[
                       styles.tagBtn,
                       {
-                        backgroundColor: active ? tag.color : C.bgInput,
-                        borderColor:     active ? tag.color : C.border,
+                        backgroundColor: active ? tag.dot : C.bgInput,
+                        borderColor:     active ? tag.dot : C.border,
                       },
                     ]}
-                    onPress={() => toggleTag(tag.id)}
+                    onPress={() => selectTag(tag.id)}
                     activeOpacity={0.75}
                   >
                     <Text style={[
@@ -153,7 +171,7 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
               styles.addBtnText,
               { color: value.trim() ? '#FFFFFF' : C.inkMuted },
             ]}>
-              Add Task{selectedTags.length > 0 ? ` · ${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}` : ''}
+              Add Task
             </Text>
           </TouchableOpacity>
         </View>

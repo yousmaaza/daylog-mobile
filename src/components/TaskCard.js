@@ -1,20 +1,19 @@
 import React, { memo, useCallback } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { TASK_PALETTE, DEFAULT_TAGS } from '../constants'
+import { getTaskPalette, DEFAULT_TAGS } from '../constants'
 import { getTaskStatus, getTotalMs, formatLive, formatShort } from '../utils'
 
 const TaskCard = memo(function TaskCard({
   task, index, tick, isExpanded, colors: C,
-  onPress, onStart, onPause, onDone, onDelete, onToggleFavorite,
+  onPress, onStart, onPause, onDone, onDelete, onToggleFavorite, onChangeTag,
 }) {
   const now     = Date.now()
   const status  = getTaskStatus(task)
   const totalMs = getTotalMs(task, now)
-  const palette = TASK_PALETTE[task.colorIdx ?? (index % TASK_PALETTE.length)]
+  const palette = getTaskPalette(task)
 
   let timeText = '—'
-  if (status === 'active') timeText = formatLive(totalMs)
-  else if (totalMs > 0)    timeText = formatShort(totalMs)
+  if (totalMs > 0) timeText = formatLive(totalMs)
 
   const isActive   = status === 'active'
   const isDone     = status === 'done'
@@ -22,9 +21,8 @@ const TaskCard = memo(function TaskCard({
 
   const statusLabel = isActive ? 'In Progress' : isDone ? 'Done' : 'Paused'
 
-  const taskTags = (task.tags ?? [])
-    .map(id => DEFAULT_TAGS.find(t => t.id === id))
-    .filter(Boolean)
+  const actualTagId = task.tagId || (task.tags && task.tags[0]) || 'other'
+  const taskTag = DEFAULT_TAGS.find(t => t.id === actualTagId)
 
   const handleFavorite = useCallback((e) => {
     e.stopPropagation?.()
@@ -73,65 +71,90 @@ const TaskCard = memo(function TaskCard({
         </Text>
 
         {/* Tags */}
-        {taskTags.length > 0 && (
+        {taskTag && (
           <View style={styles.tagsRow}>
-            {taskTags.map(tag => (
-              <View key={tag.id} style={[styles.tagChip, { backgroundColor: tag.bg, borderColor: tag.color + '40' }]}>
-                <Text style={[styles.tagText, { color: tag.color }]}>{tag.label}</Text>
-              </View>
-            ))}
+            <View style={[styles.tagChip, { backgroundColor: taskTag.bg, borderColor: taskTag.dot + '40' }]}>
+              <Text style={[styles.tagText, { color: taskTag.dot }]}>{taskTag.label}</Text>
+            </View>
           </View>
         )}
 
         {/* Expanded actions */}
         {isExpanded && (
-          <View style={[styles.actions, { borderTopColor: `${palette.dot}30` }]}>
-            {status === 'idle' && (
-              <TouchableOpacity
-                style={[styles.btn, { backgroundColor: palette.dot }]}
-                onPress={onStart}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.btnText}>
-                  {task.sessions.length === 0 ? 'Start' : 'Resume'}
-                </Text>
-              </TouchableOpacity>
-            )}
-            {status === 'active' && (
-              <>
+          <View>
+            <View style={[styles.actions, { borderTopColor: `${palette.dot}30` }]}>
+              {status === 'idle' && (
                 <TouchableOpacity
-                  style={[styles.btnOutline, { borderColor: palette.dot }]}
-                  onPress={onPause}
-                  activeOpacity={0.75}
-                >
-                  <Text style={[styles.btnOutlineText, { color: palette.dot }]}>Pause</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.btn, { backgroundColor: C.emerald }]}
-                  onPress={onDone}
+                  style={[styles.btn, { backgroundColor: palette.dot }]}
+                  onPress={onStart}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.btnText}>Done ✓</Text>
+                  <Text style={styles.btnText}>
+                    {task.sessions.length === 0 ? 'Start' : 'Resume'}
+                  </Text>
                 </TouchableOpacity>
-              </>
-            )}
-            {status === 'done' && (
+              )}
+              {status === 'active' && (
+                <>
+                  <TouchableOpacity
+                    style={[styles.btnOutline, { borderColor: palette.dot }]}
+                    onPress={onPause}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={[styles.btnOutlineText, { color: palette.dot }]}>Pause</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.btn, { backgroundColor: C.emerald }]}
+                    onPress={onDone}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.btnText}>Done ✓</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              {status === 'done' && (
+                <TouchableOpacity
+                  style={[styles.btnOutline, { borderColor: palette.dot }]}
+                  onPress={onStart}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.btnOutlineText, { color: palette.dot }]}>Reopen</Text>
+                </TouchableOpacity>
+              )}
+              <View style={{ flex: 1 }} />
               <TouchableOpacity
-                style={[styles.btnOutline, { borderColor: palette.dot }]}
-                onPress={onStart}
-                activeOpacity={0.75}
+                style={[styles.deleteBtn, { borderColor: `${palette.dot}40` }]}
+                onPress={onDelete}
+                activeOpacity={0.7}
               >
-                <Text style={[styles.btnOutlineText, { color: palette.dot }]}>Reopen</Text>
+                <Text style={[styles.deleteBtnText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
               </TouchableOpacity>
-            )}
-            <View style={{ flex: 1 }} />
-            <TouchableOpacity
-              style={[styles.deleteBtn, { borderColor: `${palette.dot}40` }]}
-              onPress={onDelete}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.deleteBtnText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
-            </TouchableOpacity>
+            </View>
+
+            <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: `${palette.dot}30` }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: C.inkMuted, marginBottom: 8, letterSpacing: 0.5 }}>Change Tag</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {DEFAULT_TAGS.map(t => {
+                  const active = t.id === actualTagId
+                  return (
+                    <TouchableOpacity
+                      key={t.id}
+                      onPress={() => onChangeTag && onChangeTag(t.id)}
+                      style={{
+                        paddingHorizontal: 12, paddingVertical: 6,
+                        borderRadius: 20, borderWidth: 1,
+                        backgroundColor: active ? t.dot : C.bgInput,
+                        borderColor: active ? t.dot : C.border,
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: active ? '#FFF' : C.inkMuted }}>
+                        {t.label}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            </View>
           </View>
         )}
       </View>

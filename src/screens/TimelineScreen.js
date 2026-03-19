@@ -7,9 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTaskContext } from '../context/TaskContext'
 import {
   COLORS, HOUR_H, TIMELINE_START, TIMELINE_END,
-  TASK_PALETTE, DAY_FULL, MONTH_FULL,
+  TASK_PALETTE, DAY_FULL, MONTH_FULL, getTaskPalette,
 } from '../constants'
-import { toKey, formatShort, formatLive } from '../utils'
+import { toKey, formatShort, formatLive, getTotalMs } from '../utils'
 import WeekPicker from '../components/WeekPicker'
 
 const LABEL_W   = 52
@@ -130,11 +130,12 @@ export default function TimelineScreen() {
 
         const blockId = sess.id ? `${sess.id}` : `${task.id}-${sess.startTime}`
         blocks.push({
-          id: blockId, name: task.name, colorIdx,
+          id: blockId, taskId: task.id, name: task.name, task, colorIdx,
           isLive:  !sess.endTime,
           isDone:  task.done,
           startY, height, realEndY,
           startTime: sess.startTime, endTime: sess.endTime,
+          tagId: task.tagId, tags: task.tags,
         })
       })
     })
@@ -224,13 +225,15 @@ export default function TimelineScreen() {
               const numCols    = numColsForBlock[idx]
               const colWidth   = timelineW / numCols
               const leftOff    = block.col * colWidth
-              const palette    = TASK_PALETTE[block.colorIdx]
-              const blockH     = Math.max(block.height, BLOCK_MIN)
+              const palette    = getTaskPalette(block)
+              const blockH     = Math.max(block.height, 2)
               const sessionMs  = block.endTime
                 ? block.endTime - block.startTime
                 : now - block.startTime
-              const showName     = !block.isLive
-              const showDuration = !block.isLive && blockH >= 52
+
+              const isTiny     = blockH < 22
+              const showName     = !block.isLive && !isTiny
+              const showDuration = !block.isLive && blockH >= 44
 
               return (
                 <View
@@ -242,9 +245,10 @@ export default function TimelineScreen() {
                       height:          blockH,
                       left:            leftOff + 3,
                       width:           colWidth - 6,
-                      backgroundColor: block.isLive ? palette.dot : (block.isDone ? `${palette.bg}88` : palette.bg),
+                      backgroundColor: block.isLive ? palette.dot : palette.bg,
                       borderColor:     palette.border,
-                      opacity:         block.isDone && !block.isLive ? 0.6 : 1,
+                      padding:         isTiny || block.isLive ? 0 : 4,
+                      opacity:         block.isDone && !block.isLive ? 0.5 : 1,
                     },
                     block.isLive && styles.blockLive,
                    ]}
@@ -268,7 +272,7 @@ export default function TimelineScreen() {
 
                   {showDuration && (
                     <Text style={[styles.blockDuration, { color: palette.dot }]}>
-                      {formatShort(sessionMs)}
+                      {formatLive(sessionMs)}
                     </Text>
                   )}
 
@@ -283,8 +287,9 @@ export default function TimelineScreen() {
               .map((block, idx) => ({ block, idx }))
               .filter(({ block }) => block.isLive)
               .map(({ block, idx }) => {
-                const palette   = TASK_PALETTE[block.colorIdx]
-                const sessionMs = now - block.startTime
+                const palette   = getTaskPalette(block)
+                const liveTask  = block.task
+                const totalMs   = liveTask ? getTotalMs(liveTask, now) : (now - block.startTime)
                 const numCols   = numColsForBlock[idx]
                 const colWidth  = timelineW / numCols
                 const leftOff   = block.col * colWidth
@@ -309,7 +314,7 @@ export default function TimelineScreen() {
                     </Text>
                     <View style={[styles.pointerBar, { backgroundColor: C.inkFaint }]} />
                     <Text style={[styles.pointerTime, { color: palette.dot }]}>
-                      {formatLive(sessionMs)}
+                      {formatLive(totalMs)}
                     </Text>
                   </View>
                 )

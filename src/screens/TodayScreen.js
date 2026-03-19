@@ -15,7 +15,7 @@ export default function TodayScreen({ onAddTask }) {
     selDate, weekStart, selTaskId,
     setSelTaskId, toggleDarkMode,
     prevWeek, nextWeek, goToday, selectDay,
-    startTask, pauseTask, doneTask, deleteTask, toggleFavorite,
+    startTask, pauseTask, doneTask, deleteTask, toggleFavorite, changeTaskTag,
   } = useTaskContext()
 
   const C = darkMode ? COLORS.dark : COLORS.light
@@ -43,6 +43,7 @@ export default function TodayScreen({ onAddTask }) {
       onDone={() => doneTask(item.id)}
       onDelete={() => deleteTask(item.id)}
       onToggleFavorite={() => toggleFavorite(item.id)}
+      onChangeTag={(tagId) => changeTaskTag(item.id, tagId)}
     />
   ), [selTaskId, tick, C, startTask, pauseTask, doneTask, deleteTask, setSelTaskId, toggleFavorite])
 
