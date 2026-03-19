@@ -1,6 +1,6 @@
 export const HOUR_H = 64
-export const TIMELINE_START = 6
-export const TIMELINE_END = 23
+export const TIMELINE_START = 0
+export const TIMELINE_END = 24
 export const STORAGE_KEY   = 'dl-tasks-v3'
 export const THEME_KEY     = 'dl-theme'
 export const TEMPLATES_KEY = 'dl-templates'
