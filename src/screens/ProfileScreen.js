@@ -229,7 +229,7 @@ export default function ProfileScreen() {
       </View>
 
       {/* App info */}
-      <Text style={[styles.appVer, { color: C.inkFaint }]}>Daylog  ·  v1.0</Text>
+      <Text style={[styles.appVer, { color: C.inkFaint }]}>Echo  ·  v1.0</Text>
     </ScrollView>
   )
 }

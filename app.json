@@ -4,6 +4,7 @@
     "slug": "daylog-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
       "backgroundColor": "#ECEAE3"
@@ -17,6 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ECEAE3"
       },
       "package": "com.daylog.mobile"
