@@ -122,16 +122,86 @@ Favoriting a task (heart icon) works across all dates. The Profile screen aggreg
 
 ## Distribution
 
-### Android (APK — shareable directly)
+### Android (APK — partageable directement)
 
 ```bash
 eas build --platform android --profile preview
 ```
 
-### iOS (TestFlight — requires Apple Developer account)
+EAS génère un fichier `.apk` téléchargeable directement depuis [expo.dev](https://expo.dev).
+
+---
+
+### iOS — Build + TestFlight (guide complet)
+
+#### Prérequis
+
+- Un compte **Apple Developer** actif (99 $/an) — [developer.apple.com](https://developer.apple.com)
+- Une app créée dans **App Store Connect** — [appstoreconnect.apple.com](https://appstoreconnect.apple.com)
+  - Mes apps → **+** → Nouvelle app → renseigne nom, bundle ID (`com.daylog.mobile`), langue
+  - Note l'**Apple ID** de l'app (un nombre à 10 chiffres visible dans Informations de l'app)
+- **EAS CLI** à jour :
+  ```bash
+  npm install -g eas-cli
+  eas login
+  ```
+
+#### 1. Configurer `eas.json`
+
+Renseigne tes identifiants dans le profil `submit.preview` :
+
+```json
+"submit": {
+  "preview": {
+    "ios": {
+      "appleId": "ton-email@example.com",
+      "ascAppId": "1234567890"
+    }
+  }
+}
+```
+
+> `ascAppId` = l'Apple ID numérique de ton app sur App Store Connect (pas le bundle ID).
+
+#### 2. Builder l'IPA
 
 ```bash
 eas build --platform ios --profile preview
+```
+
+Le build tourne sur les serveurs EAS (≈ 10-20 min). Résultat : un fichier `.ipa` signé pour le store.
+
+#### 3. Soumettre à TestFlight
+
+```bash
+eas submit --platform ios --profile preview
+```
+
+EAS te demande ton **App-Specific Password** (nécessaire si tu as la double authentification activée) :
+1. Va sur [appleid.apple.com](https://appleid.apple.com) → **Sécurité** → **Mots de passe spécifiques aux apps**
+2. Génère un mot de passe → copie-le dans le terminal quand EAS le demande
+
+#### 4. Inviter les testeurs sur TestFlight
+
+1. Ouvre [appstoreconnect.apple.com](https://appstoreconnect.apple.com) → ton app → **TestFlight**
+2. Attends que le build passe l'analyse Apple (5-15 min, statut "Prêt à soumettre")
+3. **Testeurs internes** (jusqu'à 25 personnes, accès immédiat) :
+   - Onglet **Testeurs internes** → ajoute les Apple ID des testeurs
+4. **Testeurs externes** (jusqu'à 10 000 personnes, review Apple requise) :
+   - Onglet **Groupes** → crée un groupe → ajoute par email
+   - Les testeurs reçoivent une invitation par email et installent via l'app **TestFlight**
+
+#### Résumé des commandes
+
+```bash
+# Build
+eas build --platform ios --profile preview
+
+# Soumettre à TestFlight
+eas submit --platform ios --profile preview
+
+# Build + Submit en une seule commande
+eas build --platform ios --profile preview --auto-submit
 ```
 
 ## Vérification du bundle
