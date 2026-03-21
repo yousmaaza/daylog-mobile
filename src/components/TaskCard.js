@@ -4,7 +4,7 @@ import { getTaskPalette, DEFAULT_TAGS } from '../constants'
 import { getTaskStatus, getTotalMs, formatLive, formatShort } from '../utils'
 
 const TaskCard = memo(function TaskCard({
-  task, index, tick, isExpanded, colors: C,
+  task, index, tick, isExpanded, colors: C, isToday,
   onPress, onStart, onPause, onDone, onDelete, onToggleFavorite, onChangeTag,
 }) {
   const now     = Date.now()
@@ -85,9 +85,10 @@ const TaskCard = memo(function TaskCard({
             <View style={[styles.actions, { borderTopColor: `${palette.dot}30` }]}>
               {status === 'idle' && (
                 <TouchableOpacity
-                  style={[styles.btn, { backgroundColor: palette.dot }]}
+                  style={[styles.btn, { backgroundColor: isToday ? palette.dot : C.border }]}
                   onPress={onStart}
                   activeOpacity={0.8}
+                  disabled={!isToday}
                 >
                   <Text style={styles.btnText}>
                     {task.sessions.length === 0 ? 'Start' : 'Resume'}
@@ -114,11 +115,12 @@ const TaskCard = memo(function TaskCard({
               )}
               {status === 'done' && (
                 <TouchableOpacity
-                  style={[styles.btnOutline, { borderColor: palette.dot }]}
+                  style={[styles.btnOutline, { borderColor: isToday ? palette.dot : C.border }]}
                   onPress={onStart}
                   activeOpacity={0.75}
+                  disabled={!isToday}
                 >
-                  <Text style={[styles.btnOutlineText, { color: palette.dot }]}>Reopen</Text>
+                  <Text style={[styles.btnOutlineText, { color: isToday ? palette.dot : C.inkMuted }]}>Reopen</Text>
                 </TouchableOpacity>
               )}
               <View style={{ flex: 1 }} />

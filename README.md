@@ -1,4 +1,4 @@
-# Daylog Mobile
+# Echo Mobile
 
 Track your time, one task at a time.
 
@@ -77,7 +77,7 @@ Scanne le QR code avec **Expo Go** pour tester sur un appareil physique.
 ## Project Structure
 
 ```
-daylog-mobile/
+Echo Mobile
 ├── App.js                      # Entry point, tab bar, swipe pager, auth gate
 ├── app.json                    # Expo config
 ├── eas.json                    # EAS Build profiles
@@ -100,7 +100,7 @@ daylog-mobile/
 │       ├── TimelineScreen.js   # Hourly timeline (6am–11pm) with live updates
 │       ├── StatsScreen.js      # Daily stats and charts
 │       └── ProfileScreen.js    # User card, favorites, templates, settings
-```
+└── todo.md                     # Project roadmap / progress tracker
 
 ## Key Behaviours
 

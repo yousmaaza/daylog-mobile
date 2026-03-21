@@ -36,6 +36,7 @@ export default function TodayScreen({ onAddTask }) {
       index={index}
       tick={tick}
       isExpanded={selTaskId === item.id}
+      isToday={isToday}
       colors={C}
       onPress={() => setSelTaskId(prev => prev === item.id ? null : item.id)}
       onStart={() => startTask(item.id)}
@@ -45,7 +46,7 @@ export default function TodayScreen({ onAddTask }) {
       onToggleFavorite={() => toggleFavorite(item.id)}
       onChangeTag={(tagId) => changeTaskTag(item.id, tagId)}
     />
-  ), [selTaskId, tick, C, startTask, pauseTask, doneTask, deleteTask, setSelTaskId, toggleFavorite])
+  ), [selTaskId, tick, C, isToday, startTask, pauseTask, doneTask, deleteTask, setSelTaskId, toggleFavorite, changeTaskTag])
 
   const keyExtractor = useCallback((item) => item.id, [])
 

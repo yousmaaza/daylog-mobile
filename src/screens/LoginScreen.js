@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import {
   View, Text, TouchableOpacity, TextInput,
-  StyleSheet, Modal, Pressable, KeyboardAvoidingView, Platform,
+  StyleSheet, Modal, Pressable, KeyboardAvoidingView, Platform, Image,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path, Circle } from 'react-native-svg'
@@ -59,12 +59,14 @@ export default function LoginScreen() {
 
       {/* Logo + headline */}
       <View style={[styles.hero, { paddingTop: insets.top + 60 }]}>
-        <View style={[styles.logoCircle, { backgroundColor: C.amber }]}>
-          <Text style={styles.logoLetter}>D</Text>
-        </View>
-        <Text style={[styles.appName, { color: C.inkPrimary }]}>Daylog</Text>
+        <Image
+          source={require('../../assets/icon.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
+        <Text style={[styles.appName, { color: C.inkPrimary }]}>Echo</Text>
         <Text style={[styles.tagline, { color: C.inkMuted }]}>
-          Track your time,{'\n'}one task at a time.
+          Harmony in every task,{'\n'}clarity in every day.
         </Text>
       </View>
 
@@ -184,23 +186,10 @@ const styles = StyleSheet.create({
     gap:        16,
     paddingHorizontal: 32,
   },
-  logoCircle: {
-    width:          80,
-    height:         80,
-    borderRadius:   40,
-    alignItems:     'center',
-    justifyContent: 'center',
-    shadowColor:    '#7C5CFC',
-    shadowOffset:   { width: 0, height: 8 },
-    shadowOpacity:  0.3,
-    shadowRadius:   20,
-    elevation:      10,
-  },
-  logoLetter: {
-    color:      '#FFFFFF',
-    fontSize:   40,
-    fontWeight: '800',
-    lineHeight: 48,
+  logoImage: {
+    width:          100,
+    height:         100,
+    marginBottom:   8,
   },
   appName: {
     fontSize:   36,
