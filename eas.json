@@ -5,10 +5,12 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "node": "18.20.4"
     },
     "preview": {
       "distribution": "internal",
+      "node": "18.20.4",
       "android": {
         "buildType": "apk"
       },
@@ -18,7 +20,8 @@
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "node": "18.20.4"
     }
   },
   "submit": {
