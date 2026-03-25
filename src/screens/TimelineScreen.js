@@ -237,7 +237,7 @@ export default function TimelineScreen() {
 
               return (
                 <View
-                  key={block.id}
+                  key={`${block.id}-${idx}`}
                   style={[
                     styles.block,
                     {

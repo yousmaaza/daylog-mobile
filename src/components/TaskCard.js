@@ -58,17 +58,82 @@ const TaskCard = memo(function TaskCard({
           </View>
         </View>
 
-        {/* Task name */}
-        <Text
-          style={[
-            styles.taskName,
-            { color: palette.textColor },
-            isDone && { textDecorationLine: 'line-through' },
-          ]}
-          numberOfLines={2}
-        >
-          {task.name}
-        </Text>
+        {/* Task name + Quick Actions */}
+        <View style={styles.nameRow}>
+          <Text
+            style={[
+              styles.taskName,
+              { color: palette.textColor, flex: 1 },
+              isDone && { textDecorationLine: 'line-through' },
+            ]}
+            numberOfLines={2}
+          >
+            {task.name}
+          </Text>
+
+          {/* Quick Actions (Always visible) */}
+          <View style={styles.quickActions}>
+            {status === 'idle' && (
+              <TouchableOpacity
+                style={[styles.miniBtn, { backgroundColor: isToday ? palette.dot : C.border }]}
+                onPress={onStart}
+                activeOpacity={0.8}
+                disabled={!isToday}
+              >
+                <Text style={styles.miniBtnText}>
+                  {(task.sessions?.length ?? 0) === 0 ? 'Start' : 'Resume'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {status === 'active' && (
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                <TouchableOpacity
+                  style={[styles.miniBtnOutline, { borderColor: palette.dot }]}
+                  onPress={onPause}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.miniBtnOutlineText, { color: palette.dot }]}>Pause</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.miniBtn, { backgroundColor: C.emerald }]}
+                  onPress={onDone}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.miniBtnText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {status === 'done' && isToday && (
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                <TouchableOpacity
+                  style={[styles.miniBtnOutline, { borderColor: palette.dot }]}
+                  onPress={onStart}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.miniBtnOutlineText, { color: palette.dot }]}>Reopen</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.miniBtnOutline, { borderColor: `${palette.dot}40`, paddingHorizontal: 8 }]}
+                  onPress={onDelete}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.miniBtnOutlineText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {/* If idle or active, show x only when expanded? No, user said "after done". Let's show consistently in quickActions if needed, or only when expanded. 
+               Actually, let's keep it simple: if expanded, show it after the main buttons in the quickActions Row! */}
+            {isExpanded && status !== 'done' && (
+              <TouchableOpacity
+                style={[styles.miniBtnOutline, { borderColor: `${palette.dot}40`, marginLeft: 6, paddingHorizontal: 8 }]}
+                onPress={onDelete}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.miniBtnOutlineText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
 
         {/* Tags */}
         {taskTag && (
@@ -83,54 +148,7 @@ const TaskCard = memo(function TaskCard({
         {isExpanded && (
           <View>
             <View style={[styles.actions, { borderTopColor: `${palette.dot}30` }]}>
-              {status === 'idle' && (
-                <TouchableOpacity
-                  style={[styles.btn, { backgroundColor: isToday ? palette.dot : C.border }]}
-                  onPress={onStart}
-                  activeOpacity={0.8}
-                  disabled={!isToday}
-                >
-                  <Text style={styles.btnText}>
-                    {task.sessions.length === 0 ? 'Start' : 'Resume'}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {status === 'active' && (
-                <>
-                  <TouchableOpacity
-                    style={[styles.btnOutline, { borderColor: palette.dot }]}
-                    onPress={onPause}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[styles.btnOutlineText, { color: palette.dot }]}>Pause</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.btn, { backgroundColor: C.emerald }]}
-                    onPress={onDone}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.btnText}>Done ✓</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-              {status === 'done' && (
-                <TouchableOpacity
-                  style={[styles.btnOutline, { borderColor: isToday ? palette.dot : C.border }]}
-                  onPress={onStart}
-                  activeOpacity={0.75}
-                  disabled={!isToday}
-                >
-                  <Text style={[styles.btnOutlineText, { color: isToday ? palette.dot : C.inkMuted }]}>Reopen</Text>
-                </TouchableOpacity>
-              )}
               <View style={{ flex: 1 }} />
-              <TouchableOpacity
-                style={[styles.deleteBtn, { borderColor: `${palette.dot}40` }]}
-                onPress={onDelete}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.deleteBtnText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
-              </TouchableOpacity>
             </View>
 
             <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: `${palette.dot}30` }}>
@@ -225,10 +243,39 @@ const styles = StyleSheet.create({
   heartActive: {
     color: '#F472B6',
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           12,
+  },
   taskName: {
     fontSize:   20,
     fontWeight: '800',
     lineHeight: 26,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    alignItems:    'center',
+  },
+  miniBtn: {
+    paddingHorizontal: 12,
+    paddingVertical:    6,
+    borderRadius:      12,
+  },
+  miniBtnText: {
+    color:      '#FFFFFF',
+    fontSize:   12,
+    fontWeight: '700',
+  },
+  miniBtnOutline: {
+    paddingHorizontal: 12,
+    paddingVertical:    6,
+    borderRadius:      12,
+    borderWidth:        1.5,
+  },
+  miniBtnOutlineText: {
+    fontSize:   12,
+    fontWeight: '700',
   },
   tagsRow: {
     flexDirection: 'row',

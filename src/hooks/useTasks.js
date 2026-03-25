@@ -25,7 +25,44 @@ export function useTasks() {
     Promise.all([
       loadTasks(), loadTheme(), loadUserName(), loadAuth(),
     ]).then(([savedTasks, isDark, savedName, savedUser]) => {
-      setTasks(savedTasks)
+      const sanitizedTasks = {}
+      if (savedTasks && typeof savedTasks === 'object') {
+        Object.keys(savedTasks).forEach(date => {
+          const dayTasks = savedTasks[date]
+          if (!Array.isArray(dayTasks)) return
+
+          const seenIds = new Set()
+          const cleanDay = []
+          
+          dayTasks.forEach(task => {
+            if (task && task.id && !seenIds.has(task.id)) {
+              seenIds.add(task.id)
+              
+              const seenSess = new Set()
+              const cleanSess = []
+              const sessions = Array.isArray(task.sessions) ? task.sessions : []
+              
+              sessions.forEach(sess => {
+                if (!sess) return
+                const sId = sess.id || sess.startTime
+                if (sId && !seenSess.has(sId)) {
+                  seenSess.add(sId)
+                  cleanSess.push(sess)
+                }
+              })
+              
+              cleanDay.push({ 
+                ...task, 
+                sessions: cleanSess,
+                favorite: !!task.favorite,
+                done: !!task.done
+              })
+            }
+          })
+          sanitizedTasks[date] = cleanDay
+        })
+      }
+      setTasks(sanitizedTasks)
       setDarkMode(isDark)
       setUserNameState(savedName)
       setUser(savedUser)

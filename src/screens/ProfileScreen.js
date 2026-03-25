@@ -155,7 +155,7 @@ export default function ProfileScreen() {
               const ms       = getTotalMs(task, Date.now())
               return (
                 <View
-                  key={task.id}
+                  key={`${task.id}-${task.dateKey}-${i}`}
                   style={[
                     styles.favRow,
                     { borderTopColor: C.border },

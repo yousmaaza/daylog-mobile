@@ -16,11 +16,16 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
     Object.values(tasks).forEach(dayTasks => {
       dayTasks.forEach(t => { if (t.favorite) all.push(t) })
     })
-    // deduplicate by name, keep most recent
-    const seen = new Set()
+    const seenIds = new Set()
+    const seenNames = new Set()
     return all
       .sort((a, b) => b.createdAt - a.createdAt)
-      .filter(t => { if (seen.has(t.name)) return false; seen.add(t.name); return true })
+      .filter(t => { 
+        if (seenIds.has(t.id) || seenNames.has(t.name)) return false; 
+        seenIds.add(t.id);
+        seenNames.add(t.name);
+        return true;
+      })
   }, [tasks])
 
   const reset = () => {
@@ -78,13 +83,13 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.chipsRow}
               >
-                {favoriteTasks.map(fav => {
+                {favoriteTasks.map((fav, i) => {
                   const isSelected = value === fav.name
                   const favTagId   = fav.tagId || 'other'
                   const tag        = DEFAULT_TAGS.find(t => t.id === favTagId)
                   return (
                     <TouchableOpacity
-                      key={fav.id}
+                      key={`${fav.id}-${i}`}
                       style={[
                         styles.chip,
                         {
