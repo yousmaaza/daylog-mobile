@@ -79,59 +79,61 @@ const TaskCard = memo(function TaskCard({
           </View>
         )}
 
-        {/* Expanded actions */}
+        {/* Actions row — always visible */}
+        <View style={[styles.actions, { borderTopColor: `${palette.dot}30`, marginTop: 12 }]}>
+          {status === 'idle' && (
+            <TouchableOpacity
+              style={[styles.btn, { backgroundColor: isToday ? palette.dot : C.border }]}
+              onPress={onStart}
+              activeOpacity={0.8}
+              disabled={!isToday}
+            >
+              <Text style={styles.btnText}>
+                {task.sessions.length === 0 ? 'Start' : 'Resume'}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {status === 'active' && (
+            <>
+              <TouchableOpacity
+                style={[styles.btnOutline, { borderColor: palette.dot }]}
+                onPress={onPause}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.btnOutlineText, { color: palette.dot }]}>Pause</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: C.emerald }]}
+                onPress={onDone}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.btnText}>Done ✓</Text>
+              </TouchableOpacity>
+            </>
+          )}
+          {status === 'done' && (
+            <TouchableOpacity
+              style={[styles.btnOutline, { borderColor: isToday ? palette.dot : C.border }]}
+              onPress={onStart}
+              activeOpacity={0.75}
+              disabled={!isToday}
+            >
+              <Text style={[styles.btnOutlineText, { color: isToday ? palette.dot : C.inkMuted }]}>Reopen</Text>
+            </TouchableOpacity>
+          )}
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity
+            style={styles.deleteBtn}
+            onPress={onDelete}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.deleteBtnText}>🗑</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Expanded section — tag picker only */}
         {isExpanded && (
           <View>
-            <View style={[styles.actions, { borderTopColor: `${palette.dot}30` }]}>
-              {status === 'idle' && (
-                <TouchableOpacity
-                  style={[styles.btn, { backgroundColor: isToday ? palette.dot : C.border }]}
-                  onPress={onStart}
-                  activeOpacity={0.8}
-                  disabled={!isToday}
-                >
-                  <Text style={styles.btnText}>
-                    {task.sessions.length === 0 ? 'Start' : 'Resume'}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {status === 'active' && (
-                <>
-                  <TouchableOpacity
-                    style={[styles.btnOutline, { borderColor: palette.dot }]}
-                    onPress={onPause}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[styles.btnOutlineText, { color: palette.dot }]}>Pause</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.btn, { backgroundColor: C.emerald }]}
-                    onPress={onDone}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.btnText}>Done ✓</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-              {status === 'done' && (
-                <TouchableOpacity
-                  style={[styles.btnOutline, { borderColor: isToday ? palette.dot : C.border }]}
-                  onPress={onStart}
-                  activeOpacity={0.75}
-                  disabled={!isToday}
-                >
-                  <Text style={[styles.btnOutlineText, { color: isToday ? palette.dot : C.inkMuted }]}>Reopen</Text>
-                </TouchableOpacity>
-              )}
-              <View style={{ flex: 1 }} />
-              <TouchableOpacity
-                style={[styles.deleteBtn, { borderColor: `${palette.dot}40` }]}
-                onPress={onDelete}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.deleteBtnText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
-              </TouchableOpacity>
-            </View>
 
             <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: `${palette.dot}30` }}>
               <Text style={{ fontSize: 11, fontWeight: '600', color: C.inkMuted, marginBottom: 8, letterSpacing: 0.5 }}>Change Tag</Text>
@@ -276,15 +278,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   deleteBtn: {
-    width:          38,
-    height:         38,
-    borderRadius:   19,
-    borderWidth:    1.5,
-    alignItems:     'center',
-    justifyContent: 'center',
+    width:            36,
+    height:           36,
+    borderRadius:     18,
+    backgroundColor:  '#FEE2E2',
+    borderWidth:      1.5,
+    borderColor:      '#FCA5A5',
+    alignItems:       'center',
+    justifyContent:   'center',
   },
   deleteBtnText: {
-    fontSize:   14,
-    fontWeight: '600',
+    fontSize:   15,
   },
 })
