@@ -21,11 +21,13 @@ export default function StatsScreen() {
   const filteredTasks = useMemo(() => {
     let result = []
     if (mode === 'day') {
-      result = tasks[selDate] ?? []
+      result = (tasks[selDate] ?? []).map(t => ({ ...t, _dateKey: selDate }))
     } else if (mode === 'week') {
       for (let i = 0; i < 7; i++) {
         const d = addDays(weekStart, i)
-        result.push(...(tasks[toKey(d)] ?? []))
+        const dateKey = toKey(d)
+        const dayTasks = tasks[dateKey] ?? []
+        result.push(...dayTasks.map(t => ({ ...t, _dateKey: dateKey })))
       }
     } else {
       const selDateObj = new Date(selDate + 'T12:00:00')
@@ -33,8 +35,11 @@ export default function StatsScreen() {
       const month = selDateObj.getMonth()
       Object.keys(tasks).forEach(key => {
         const [y, m] = key.split('-')
-        if (parseInt(y) === year && parseInt(m) - 1 === month) {
-          result.push(...tasks[key])
+        if (parseInt(y) === year && (parseInt(m) - 1) === month) {
+          const dayTasks = tasks[key]
+          if (Array.isArray(dayTasks)) {
+            result.push(...dayTasks.map(t => ({ ...t, _dateKey: key })))
+          }
         }
       })
     }
@@ -186,7 +191,7 @@ export default function StatsScreen() {
             const palette = getTaskPalette(task)
             return (
               <View
-                key={task.id}
+                key={task._dateKey ? `${task.id}-${task._dateKey}-${i}` : `${task.id}-${i}`}
                 style={[
                   styles.taskRow,
                   { borderTopColor: C.border },
