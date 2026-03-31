@@ -74,16 +74,25 @@ const TaskCard = memo(function TaskCard({
           {/* Quick Actions (Always visible) */}
           <View style={styles.quickActions}>
             {status === 'idle' && (
-              <TouchableOpacity
-                style={[styles.miniBtn, { backgroundColor: isToday ? palette.dot : C.border }]}
-                onPress={onStart}
-                activeOpacity={0.8}
-                disabled={!isToday}
-              >
-                <Text style={styles.miniBtnText}>
-                  {(task.sessions?.length ?? 0) === 0 ? 'Start' : 'Resume'}
-                </Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                <TouchableOpacity
+                  style={[styles.miniBtn, { backgroundColor: isToday ? palette.dot : C.border }]}
+                  onPress={onStart}
+                  activeOpacity={0.8}
+                  disabled={!isToday}
+                >
+                  <Text style={styles.miniBtnText}>
+                    {(task.sessions?.length ?? 0) === 0 ? 'Start' : 'Resume'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.miniBtnOutline, { borderColor: `${palette.dot}40`, paddingHorizontal: 8 }]}
+                  onPress={onDelete}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.miniBtnOutlineText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
+                </TouchableOpacity>
+              </View>
             )}
             {status === 'active' && (
               <View style={{ flexDirection: 'row', gap: 6 }}>
@@ -100,6 +109,13 @@ const TaskCard = memo(function TaskCard({
                   activeOpacity={0.8}
                 >
                   <Text style={styles.miniBtnText}>Done</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.miniBtnOutline, { borderColor: `${palette.dot}40`, paddingHorizontal: 8 }]}
+                  onPress={onDelete}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.miniBtnOutlineText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -120,17 +136,6 @@ const TaskCard = memo(function TaskCard({
                   <Text style={[styles.miniBtnOutlineText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
                 </TouchableOpacity>
               </View>
-            )}
-            {/* If idle or active, show x only when expanded? No, user said "after done". Let's show consistently in quickActions if needed, or only when expanded. 
-               Actually, let's keep it simple: if expanded, show it after the main buttons in the quickActions Row! */}
-            {isExpanded && status !== 'done' && (
-              <TouchableOpacity
-                style={[styles.miniBtnOutline, { borderColor: `${palette.dot}40`, marginLeft: 6, paddingHorizontal: 8 }]}
-                onPress={onDelete}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.miniBtnOutlineText, { color: palette.dot, opacity: 0.5 }]}>✕</Text>
-              </TouchableOpacity>
             )}
           </View>
         </View>
