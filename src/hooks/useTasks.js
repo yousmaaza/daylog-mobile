@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   loadTasks, saveTasks, loadTheme, saveTheme,
   loadUserName, saveUserName,
@@ -17,6 +17,7 @@ export function useTasks() {
 
   const [todayKey, setTodayKey] = useState(() => toKey(new Date()))
   const [selDate, setSelDate]     = useState(() => toKey(new Date()))
+  const selDateRef = useRef(selDate)
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()))
   const [selTaskId, setSelTaskId] = useState(null)
 
@@ -69,6 +70,9 @@ export function useTasks() {
       setLoaded(true)
     })
   }, [])
+
+  // Keep selDateRef in sync so mutation callbacks always use the current date
+  useEffect(() => { selDateRef.current = selDate }, [selDate])
 
   // Persist tasks on change
   useEffect(() => {
@@ -162,11 +166,12 @@ export function useTasks() {
   }, [selDate, tasks])
 
   const updateTask = useCallback((id, updater) => {
+    const dateKey = selDateRef.current
     setTasks(prev => ({
       ...prev,
-      [selDate]: (prev[selDate] ?? []).map(t => t.id === id ? updater(t) : t),
+      [dateKey]: (prev[dateKey] ?? []).map(t => t.id === id ? updater(t) : t),
     }))
-  }, [selDate])
+  }, [])
 
   // Toggle favorite across ALL dates (favorite can be from any day)
   const toggleFavorite = useCallback((taskId) => {
@@ -218,21 +223,23 @@ export function useTasks() {
   }, [updateTask])
 
   const deleteTask = useCallback((id) => {
+    const dateKey = selDateRef.current
     setTasks(prev => ({
       ...prev,
-      [selDate]: (prev[selDate] ?? []).filter(t => t.id !== id),
+      [dateKey]: (prev[dateKey] ?? []).filter(t => t.id !== id),
     }))
     setSelTaskId(prev => prev === id ? null : prev)
-  }, [selDate])
+  }, [])
 
   const reorderTasks = useCallback((fromIdx, toIdx) => {
+    const dateKey = selDateRef.current
     setTasks(prev => {
-      const dayTasks = [...(prev[selDate] ?? [])]
+      const dayTasks = [...(prev[dateKey] ?? [])]
       const [removed] = dayTasks.splice(fromIdx, 1)
       dayTasks.splice(toIdx, 0, removed)
-      return { ...prev, [selDate]: dayTasks }
+      return { ...prev, [dateKey]: dayTasks }
     })
-  }, [selDate])
+  }, [])
 
   const changeTaskTag = useCallback((id, tagId) => {
     updateTask(id, t => ({ ...t, tagId }))
