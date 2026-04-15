@@ -5,6 +5,7 @@ import {
   loadAuth, saveAuth,
 } from '../storage'
 import { uid, toKey, getWeekStart, addDays } from '../utils'
+import { MAX_TASK_NAME, MAX_USER_NAME } from '../constants'
 
 export function useTasks() {
   const [tasks, setTasks]             = useState({})
@@ -142,18 +143,20 @@ export function useTasks() {
   }, [])
 
   const setUserName = useCallback((name) => {
-    setUserNameState(name)
-    saveUserName(name)
+    const trimmed = (name || '').trim().slice(0, MAX_USER_NAME)
+    setUserNameState(trimmed)
+    saveUserName(trimmed)
   }, [])
 
   // ── Task actions ─────────────────────────────────────────────────────────
 
   const addTask = useCallback((name, options = {}) => {
-    if (!name.trim()) return null
-    const currentDayTasks = tasks[selDate] ?? []
+    const trimmed = (name || '').trim().slice(0, MAX_TASK_NAME)
+    if (!trimmed) return null
+    
     const task = {
       id:        uid(),
-      name:      name.trim(),
+      name:      trimmed,
       sessions:  [],
       done:      false,
       createdAt: Date.now(),
@@ -162,7 +165,7 @@ export function useTasks() {
     }
     setTasks(prev => ({ ...prev, [selDate]: [...(prev[selDate] ?? []), task] }))
     return task.id
-  }, [selDate, tasks])
+  }, [selDate])
 
   const updateTask = useCallback((id, updater) => {
     const dateKey = selDateRef.current

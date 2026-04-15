@@ -4,7 +4,7 @@ import {
   StyleSheet, KeyboardAvoidingView, Platform, Pressable,
 } from 'react-native'
 import { useTaskContext } from '../context/TaskContext'
-import { DEFAULT_TAGS } from '../constants'
+import { DEFAULT_TAGS, MAX_TASK_NAME } from '../constants'
 
 export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClose }) {
   const { tasks } = useTaskContext()
@@ -131,6 +131,7 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
               returnKeyType="done"
               autoFocus
               selectionColor={C.amber}
+              maxLength={MAX_TASK_NAME}
             />
           </View>
 

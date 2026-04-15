@@ -6,7 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path, Circle, Rect } from 'react-native-svg'
 import { useTaskContext } from '../context/TaskContext'
-import { COLORS, DEFAULT_TAGS, getTaskPalette } from '../constants'
+import { COLORS, DEFAULT_TAGS, getTaskPalette, MAX_USER_NAME } from '../constants'
 import { getTotalMs, formatShort } from '../utils'
 
 // ── Small chevron icon ────────────────────────────────────────────────────────
@@ -112,6 +112,7 @@ export default function ProfileScreen() {
               onBlur={handleSaveName}
               autoFocus
               selectionColor={C.amber}
+              maxLength={MAX_USER_NAME}
             />
           ) : (
             <Text style={[styles.userName, { color: C.inkPrimary }]}>{displayName}</Text>
