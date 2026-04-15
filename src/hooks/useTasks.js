@@ -5,7 +5,6 @@ import {
   loadAuth, saveAuth,
 } from '../storage'
 import { uid, toKey, getWeekStart, addDays } from '../utils'
-import { TASK_PALETTE } from '../constants'
 
 export function useTasks() {
   const [tasks, setTasks]             = useState({})

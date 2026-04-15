@@ -24,8 +24,6 @@ export const getTaskPalette = (task) => {
   return DEFAULT_TAGS.find(t => t.id === tagId) || DEFAULT_TAGS.find(t => t.id === 'other')
 }
 
-// Keep TASK_PALETTE for old usages that we haven't migrated yet
-export const TASK_PALETTE = DEFAULT_TAGS
 
 export const DAY_SHORT  = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export const DAY_FULL   = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']

@@ -307,36 +307,4 @@ const styles = StyleSheet.create({
     paddingTop:     16,
     borderTopWidth: 1,
   },
-  btn: {
-    paddingHorizontal: 20,
-    paddingVertical:    10,
-    borderRadius:      20,
-  },
-  btnText: {
-    color:      '#FFFFFF',
-    fontSize:   13,
-    fontWeight: '700',
-  },
-  btnOutline: {
-    paddingHorizontal: 20,
-    paddingVertical:    10,
-    borderRadius:      20,
-    borderWidth:        2,
-  },
-  btnOutlineText: {
-    fontSize:   13,
-    fontWeight: '700',
-  },
-  deleteBtn: {
-    width:          38,
-    height:         38,
-    borderRadius:   19,
-    borderWidth:    1.5,
-    alignItems:     'center',
-    justifyContent: 'center',
-  },
-  deleteBtnText: {
-    fontSize:   14,
-    fontWeight: '600',
-  },
 })

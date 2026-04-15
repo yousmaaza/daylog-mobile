@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTaskContext } from '../context/TaskContext'
-import { COLORS, TASK_PALETTE, DEFAULT_TAGS, getTaskPalette } from '../constants'
+import { COLORS, DEFAULT_TAGS, getTaskPalette } from '../constants'
 import { getTaskStatus, getTotalMs, formatShort, formatLive, toKey, addDays } from '../utils'
 import DonutChart from '../components/DonutChart'
 
