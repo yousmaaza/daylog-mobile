@@ -113,7 +113,12 @@ export function useTasks() {
 
   const logout = useCallback(() => {
     setUser(null)
+    setTasks({})
+    setUserNameState('')
+    setSelDate(toKey(new Date()))
+    setSelTaskId(null)
     saveAuth(null)
+    saveTasks({})
   }, [])
 
   // ── Navigation ───────────────────────────────────────────────────────────
