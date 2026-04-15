@@ -5,63 +5,82 @@ export async function loadTasks() {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw)
-  } catch {}
+  } catch (e) {
+    console.error('[storage] loadTasks failed:', e)
+  }
   return {}
 }
 
 export async function saveTasks(tasks) {
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
-  } catch {}
+  } catch (e) {
+    console.error('[storage] saveTasks failed:', e)
+    throw e
+  }
 }
 
 export async function loadTheme() {
   try {
     const theme = await AsyncStorage.getItem(THEME_KEY)
     return theme === 'dark'
-  } catch {}
+  } catch (e) {
+    console.error('[storage] loadTheme failed:', e)
+  }
   return false
 }
 
 export async function saveTheme(isDark) {
   try {
     await AsyncStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light')
-  } catch {}
+  } catch (e) {
+    console.error('[storage] saveTheme failed:', e)
+  }
 }
 
 export async function loadTemplates() {
   try {
     const raw = await AsyncStorage.getItem(TEMPLATES_KEY)
     if (raw) return JSON.parse(raw)
-  } catch {}
+  } catch (e) {
+    console.error('[storage] loadTemplates failed:', e)
+  }
   return []
 }
 
 export async function saveTemplates(templates) {
   try {
     await AsyncStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates))
-  } catch {}
+  } catch (e) {
+    console.error('[storage] saveTemplates failed:', e)
+  }
 }
 
 export async function loadUserName() {
   try {
     const name = await AsyncStorage.getItem(USERNAME_KEY)
     return name || ''
-  } catch {}
+  } catch (e) {
+    console.error('[storage] loadUserName failed:', e)
+  }
   return ''
 }
 
 export async function saveUserName(name) {
   try {
     await AsyncStorage.setItem(USERNAME_KEY, name)
-  } catch {}
+  } catch (e) {
+    console.error('[storage] saveUserName failed:', e)
+  }
 }
 
 export async function loadAuth() {
   try {
     const raw = await AsyncStorage.getItem(AUTH_KEY)
     if (raw) return JSON.parse(raw)
-  } catch {}
+  } catch (e) {
+    console.error('[storage] loadAuth failed:', e)
+  }
   return null
 }
 
@@ -72,5 +91,7 @@ export async function saveAuth(user) {
     } else {
       await AsyncStorage.removeItem(AUTH_KEY)
     }
-  } catch {}
+  } catch (e) {
+    console.error('[storage] saveAuth failed:', e)
+  }
 }
