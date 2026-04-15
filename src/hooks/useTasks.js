@@ -15,8 +15,8 @@ export function useTasks() {
   const [userName, setUserNameState]  = useState('')
   const [user, setUser]               = useState(null)   // { name, email, photo }
 
-  const todayKey = toKey(new Date())
-  const [selDate, setSelDate]     = useState(todayKey)
+  const [todayKey, setTodayKey] = useState(() => toKey(new Date()))
+  const [selDate, setSelDate]     = useState(() => toKey(new Date()))
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()))
   const [selTaskId, setSelTaskId] = useState(null)
 
@@ -80,6 +80,18 @@ export function useTasks() {
     const id = setInterval(() => setTick(t => t + 1), 1000)
     return () => clearInterval(id)
   }, [])
+
+  // Update todayKey at midnight so new tasks land on the correct date
+  useEffect(() => {
+    const msUntilMidnight = () => {
+      const now = new Date()
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now
+    }
+    const timeout = setTimeout(() => {
+      setTodayKey(toKey(new Date()))
+    }, msUntilMidnight())
+    return () => clearTimeout(timeout)
+  }, [todayKey])
 
   const toggleDarkMode = useCallback(() => {
     setDarkMode(d => {
