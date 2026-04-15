@@ -5,7 +5,7 @@ enableScreens(false)
 import React, { useRef, useState, useCallback } from 'react'
 import {
   View, ScrollView, TouchableOpacity, Text,
-  StyleSheet, useWindowDimensions,
+  StyleSheet, useWindowDimensions, ActivityIndicator,
 } from 'react-native'
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
@@ -105,8 +105,18 @@ function AppContent() {
   // plus insets.bottom for the home indicator region.
   const TAB_H = 60
 
-  // Show login screen if not authenticated (after initial load)
-  if (loaded && !user) {
+  // 1. Show loading spinner while reading from storage
+  if (!loaded) {
+    return (
+      <View style={{ flex: 1, backgroundColor: C.bgApp, justifyContent: 'center', alignItems: 'center' }}>
+        <StatusBar style={C.statusBar} />
+        <ActivityIndicator size="large" color={C.amber} />
+      </View>
+    )
+  }
+
+  // 2. Show login screen if not authenticated
+  if (!user) {
     return (
       <>
         <StatusBar style={C.statusBar} />
