@@ -89,10 +89,14 @@ export default function TimelineScreen() {
   const totalH   = (TIMELINE_END - TIMELINE_START) * HOUR_H
 
   // Auto-scroll to current time when viewing today
+  // nowTop is recalculated inside the effect so returning to this screen
+  // always scrolls to the actual current time, not the time at mount
   useEffect(() => {
     if (selDate !== todayKey) return
     const timer = setTimeout(() => {
-      scrollRef.current?.scrollTo({ y: Math.max(0, nowTop - 180), animated: true })
+      const currentDate = new Date()
+      const currentNowTop = ((currentDate.getHours() - TIMELINE_START) + currentDate.getMinutes() / 60) * HOUR_H
+      scrollRef.current?.scrollTo({ y: Math.max(0, currentNowTop - 180), animated: true })
     }, 400)
     return () => clearTimeout(timer)
   }, [selDate, todayKey])
