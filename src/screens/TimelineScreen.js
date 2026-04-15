@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTaskContext } from '../context/TaskContext'
 import {
   COLORS, HOUR_H, TIMELINE_START, TIMELINE_END,
-  TASK_PALETTE, DAY_FULL, MONTH_FULL, getTaskPalette,
+  DEFAULT_TAGS, DAY_FULL, MONTH_FULL, getTaskPalette,
 } from '../constants'
 import { toKey, formatShort, formatLive, getTotalMs } from '../utils'
 import WeekPicker from '../components/WeekPicker'
@@ -109,7 +109,8 @@ export default function TimelineScreen() {
     const blocks = []
 
     dayTasks.forEach((task, taskIdx) => {
-      const colorIdx = task.colorIdx ?? (taskIdx % TASK_PALETTE.length)
+      const paletteLen = (DEFAULT_TAGS && DEFAULT_TAGS.length) || 1
+      const colorIdx = task.colorIdx ?? (taskIdx % paletteLen)
       task.sessions.forEach(sess => {
         const start  = new Date(sess.startTime)
         const end    = sess.endTime ? new Date(sess.endTime) : new Date(now)

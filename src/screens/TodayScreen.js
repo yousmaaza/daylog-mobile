@@ -8,7 +8,7 @@ import WeekPicker from '../components/WeekPicker'
 import TaskCard from '../components/TaskCard'
 
 // onAddTask prop is called when the user taps the "add" hint in the empty state
-export default function TodayScreen({ onAddTask }) {
+export default function TodayScreen() {
   const insets = useSafeAreaInsets()
   const {
     tasks, darkMode, tick,

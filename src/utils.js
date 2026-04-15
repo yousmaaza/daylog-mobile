@@ -26,13 +26,15 @@ export function addDays(date, n) {
 
 export function getTaskStatus(task) {
   if (task.done) return 'done'
-  const last = task.sessions[task.sessions.length - 1]
+  const sessions = task.sessions || []
+  const last = sessions[sessions.length - 1]
   if (last && !last.endTime) return 'active'
   return 'idle'
 }
 
 export function getTotalMs(task, now) {
-  return task.sessions.reduce((acc, s) => {
+  const sessions = task.sessions || []
+  return sessions.reduce((acc, s) => {
     const end = s.endTime ?? now
     return acc + (end - s.startTime)
   }, 0)
