@@ -5,7 +5,8 @@ export const STORAGE_KEY   = 'dl-tasks-v3'
 export const THEME_KEY     = 'dl-theme'
 export const TEMPLATES_KEY = 'dl-templates'
 export const USERNAME_KEY  = 'dl-username'
-export const AUTH_KEY      = 'dl-auth'
+export const AUTH_KEY            = 'dl-auth'
+export const NOTIFICATIONS_KEY   = 'dl-notifications'
 
 export const DEFAULT_TAGS = [
   { id: 'work',         label: 'Work',         color: '#FFFFFF', bg: '#EDE9FF', border: '#D4CAFC', dot: '#7C5CFC', textColor: '#4C2FB0' },

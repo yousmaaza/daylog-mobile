@@ -3,6 +3,7 @@ import {
   loadTasks, saveTasks, loadTheme, saveTheme,
   loadUserName, saveUserName,
   loadAuth, saveAuth,
+  loadNotifications, saveNotifications,
 } from '../storage'
 import { uid, toKey, getWeekStart, addDays } from '../utils'
 import { TASK_PALETTE } from '../constants'
@@ -12,8 +13,9 @@ export function useTasks() {
   const [darkMode, setDarkMode]       = useState(false)
   const [loaded, setLoaded]           = useState(false)
   const [tick, setTick]               = useState(0)
-  const [userName, setUserNameState]  = useState('')
-  const [user, setUser]               = useState(null)   // { name, email, photo }
+  const [userName, setUserNameState]      = useState('')
+  const [user, setUser]                   = useState(null)   // { name, email, photo }
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
 
   const [todayKey, setTodayKey] = useState(() => toKey(new Date()))
   const [selDate, setSelDate]     = useState(() => toKey(new Date()))
@@ -23,8 +25,8 @@ export function useTasks() {
   // Load from AsyncStorage on mount
   useEffect(() => {
     Promise.all([
-      loadTasks(), loadTheme(), loadUserName(), loadAuth(),
-    ]).then(([savedTasks, isDark, savedName, savedUser]) => {
+      loadTasks(), loadTheme(), loadUserName(), loadAuth(), loadNotifications(),
+    ]).then(([savedTasks, isDark, savedName, savedUser, notifEnabled]) => {
       const sanitizedTasks = {}
       if (savedTasks && typeof savedTasks === 'object') {
         Object.keys(savedTasks).forEach(date => {
@@ -66,6 +68,7 @@ export function useTasks() {
       setDarkMode(isDark)
       setUserNameState(savedName)
       setUser(savedUser)
+      setNotificationsEnabled(notifEnabled)
       setLoaded(true)
     })
   }, [])
@@ -97,6 +100,13 @@ export function useTasks() {
     setDarkMode(d => {
       saveTheme(!d)
       return !d
+    })
+  }, [])
+
+  const toggleNotifications = useCallback(() => {
+    setNotificationsEnabled(prev => {
+      saveNotifications(!prev)
+      return !prev
     })
   }, [])
 
@@ -242,6 +252,7 @@ export function useTasks() {
     tasks, darkMode, loaded, tick,
     selDate, weekStart, selTaskId,
     userName, user,
+    notificationsEnabled, toggleNotifications,
     setSelTaskId, toggleDarkMode, setUserName,
     login, logout,
     prevWeek, nextWeek, goToday, selectDay,

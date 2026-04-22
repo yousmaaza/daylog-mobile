@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 16.0.0"
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -10,6 +11,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "autoIncrement": true,
       "node": "20.18.0",
       "android": {
         "buildType": "apk"
@@ -28,8 +30,8 @@
     "production": {},
     "preview": {
       "ios": {
-        "appleId": "YOUR_APPLE_ID@example.com",
-        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID"
+        "appleId": "maazaouiyo@icloud.com",
+        "ascAppId": "6760933100"
       }
     }
   }

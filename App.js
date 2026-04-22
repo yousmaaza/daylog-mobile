@@ -78,8 +78,8 @@ const RIGHT_TABS = [
 function AppContent() {
   const { width, height } = useWindowDimensions()
   const insets   = useSafeAreaInsets()
-  const { darkMode, addTask, user, loaded, tasks, tick } = useTaskContext()
-  useTaskNotification(tasks, tick)
+  const { darkMode, addTask, user, loaded, tasks, tick, notificationsEnabled } = useTaskContext()
+  useTaskNotification(tasks, tick, notificationsEnabled)
   const C = darkMode ? COLORS.dark : COLORS.light
 
   const pagerRef = useRef(null)
