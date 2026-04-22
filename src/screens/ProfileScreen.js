@@ -47,6 +47,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
   const {
     darkMode, toggleDarkMode,
+    notificationsEnabled, toggleNotifications,
     userName, setUserName,
     user, logout,
     tasks,
@@ -208,6 +209,19 @@ export default function ProfileScreen() {
             <Switch
               value={darkMode}
               onValueChange={toggleDarkMode}
+              trackColor={{ false: C.border, true: C.amber }}
+              thumbColor="#FFFFFF"
+            />
+          }
+          colors={C}
+        />
+        <MenuRow
+          icon={<Text style={{ fontSize: 16 }}>🔔</Text>}
+          label="Notifications"
+          right={
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={toggleNotifications}
               trackColor={{ false: C.border, true: C.amber }}
               thumbColor="#FFFFFF"
             />
