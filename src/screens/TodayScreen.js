@@ -124,6 +124,7 @@ export default function TodayScreen() {
         data={dayTasks}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        extraData={tick}
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingTop: 4, paddingBottom: insets.bottom + 140 }}
         showsVerticalScrollIndicator={false}

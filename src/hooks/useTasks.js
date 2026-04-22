@@ -3,17 +3,20 @@ import {
   loadTasks, saveTasks, loadTheme, saveTheme,
   loadUserName, saveUserName,
   loadAuth, saveAuth,
+  loadNotifications, saveNotifications,
 } from '../storage'
 import { uid, toKey, getWeekStart, addDays } from '../utils'
 import { MAX_TASK_NAME, MAX_USER_NAME } from '../constants'
+import { applyMidnightRollover, sealOrphanedSessions } from '../midnight'
 
 export function useTasks() {
   const [tasks, setTasks]             = useState({})
   const [darkMode, setDarkMode]       = useState(false)
   const [loaded, setLoaded]           = useState(false)
   const [tick, setTick]               = useState(0)
-  const [userName, setUserNameState]  = useState('')
-  const [user, setUser]               = useState(null)   // { name, email, photo }
+  const [userName, setUserNameState]      = useState('')
+  const [user, setUser]                   = useState(null)   // { name, email, photo }
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
 
   const [todayKey, setTodayKey] = useState(() => toKey(new Date()))
   const [selDate, setSelDate]     = useState(() => toKey(new Date()))
@@ -24,9 +27,11 @@ export function useTasks() {
   // Load from AsyncStorage on mount
   useEffect(() => {
     Promise.all([
-      loadTasks(), loadTheme(), loadUserName(), loadAuth(),
-    ]).then(([savedTasks, isDark, savedName, savedUser]) => {
+      loadTasks(), loadTheme(), loadUserName(), loadAuth(), loadNotifications(),
+    ]).then(([savedTasks, isDark, savedName, savedUser, notifEnabled]) => {
       const sanitizedTasks = {}
+      const nameToPId = {} // Link tasks by name if parentId is missing
+
       if (savedTasks && typeof savedTasks === 'object') {
         Object.keys(savedTasks).forEach(date => {
           const dayTasks = savedTasks[date]
@@ -52,21 +57,28 @@ export function useTasks() {
                 }
               })
               
+              const pId = task.parentId || nameToPId[task.name] || task.id
+              if (!nameToPId[task.name]) nameToPId[task.name] = pId
+
               cleanDay.push({ 
                 ...task, 
                 sessions: cleanSess,
                 favorite: !!task.favorite,
-                done: !!task.done
+                done: !!task.done,
+                parentId: pId
               })
             }
           })
           sanitizedTasks[date] = cleanDay
         })
       }
-      setTasks(sanitizedTasks)
+      // Seal orphaned open sessions from previous days (app closed during active task)
+      const sealed = sealOrphanedSessions(sanitizedTasks, toKey(new Date()))
+      setTasks(sealed)
       setDarkMode(isDark)
       setUserNameState(savedName)
       setUser(savedUser)
+      setNotificationsEnabled(notifEnabled)
       setLoaded(true)
     })
   }, [])
@@ -85,22 +97,48 @@ export function useTasks() {
     return () => clearInterval(id)
   }, [])
 
-  // Update todayKey at midnight so new tasks land on the correct date
+  // Carry active tasks from any past day into the new day, then navigate there.
+  // Uses no closed-over state: all reads are inside functional updaters or fresh Date calls.
+  const runMidnightRollover = useCallback(() => {
+    const now = new Date()
+    const newDayKey  = toKey(now)
+    const midnightTs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+
+    setTasks(prev => applyMidnightRollover(prev, newDayKey, midnightTs))
+    setTodayKey(newDayKey)
+    setSelDate(newDayKey)
+    setWeekStart(getWeekStart(now))
+  }, [])
+
+  // Precise timeout fires at the exact midnight boundary
   useEffect(() => {
     const msUntilMidnight = () => {
       const now = new Date()
       return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now
     }
-    const timeout = setTimeout(() => {
-      setTodayKey(toKey(new Date()))
-    }, msUntilMidnight())
+    const timeout = setTimeout(runMidnightRollover, msUntilMidnight())
     return () => clearTimeout(timeout)
-  }, [todayKey])
+  }, [todayKey, runMidnightRollover])
+
+  // Fallback: check every 30s for date change (handles system clock changes and backgrounding)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (toKey(new Date()) !== todayKey) runMidnightRollover()
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [todayKey, runMidnightRollover])
 
   const toggleDarkMode = useCallback(() => {
     setDarkMode(d => {
       saveTheme(!d)
       return !d
+    })
+  }, [])
+
+  const toggleNotifications = useCallback(() => {
+    setNotificationsEnabled(prev => {
+      saveNotifications(!prev)
+      return !prev
     })
   }, [])
 
@@ -154,18 +192,41 @@ export function useTasks() {
     const trimmed = (name || '').trim().slice(0, MAX_TASK_NAME)
     if (!trimmed) return null
     
+    let finalParentId = options.parentId
+    let finalTagId = options.tagId
+    let isFavorite = false
+
+    // Search for existing project properties
+    const lowerName = trimmed.toLowerCase()
+    outer: for (const dayTasks of Object.values(tasks)) {
+      for (const t of dayTasks) {
+        // If parentId matches OR name matches (and no parentId provided)
+        const nameMatch = t.name.trim().toLowerCase() === lowerName
+        const idMatch = finalParentId && (t.id === finalParentId || t.parentId === finalParentId)
+        
+        if (idMatch || (!finalParentId && nameMatch)) {
+          finalParentId = t.parentId || t.id
+          if (!finalTagId) finalTagId = t.tagId
+          isFavorite = !!t.favorite
+          break outer
+        }
+      }
+    }
+
+    const id = uid()
     const task = {
-      id:        uid(),
+      id,
+      parentId:  finalParentId || id,
       name:      trimmed,
+      tagId:     finalTagId || 'other',
       sessions:  [],
       done:      false,
+      favorite:  isFavorite,
       createdAt: Date.now(),
-      tagId:     options.tagId ?? 'other',
-      favorite:  false,
     }
     setTasks(prev => ({ ...prev, [selDate]: [...(prev[selDate] ?? []), task] }))
     return task.id
-  }, [selDate])
+  }, [tasks, selDate])
 
   const updateTask = useCallback((id, updater) => {
     const dateKey = selDateRef.current
@@ -178,10 +239,23 @@ export function useTasks() {
   // Toggle favorite across ALL dates (favorite can be from any day)
   const toggleFavorite = useCallback((taskId) => {
     setTasks(prev => {
+      // Find parentId of this task
+      let pId = taskId
+      outer: for (const dayTasks of Object.values(prev)) {
+        for (const t of dayTasks) {
+          if (t.id === taskId) {
+            pId = t.parentId || t.id
+            break outer
+          }
+        }
+      }
+
       const next = {}
       Object.keys(prev).forEach(key => {
         next[key] = prev[key].map(t =>
-          t.id === taskId ? { ...t, favorite: !t.favorite } : t
+          (t.id === taskId || (t.parentId && t.parentId === pId))
+            ? { ...t, favorite: !t.favorite }
+            : t
         )
       })
       return next
@@ -251,6 +325,7 @@ export function useTasks() {
     tasks, darkMode, loaded, tick,
     selDate, weekStart, selTaskId,
     userName, user,
+    notificationsEnabled, toggleNotifications,
     setSelTaskId, toggleDarkMode, setUserName,
     login, logout,
     prevWeek, nextWeek, goToday, selectDay,

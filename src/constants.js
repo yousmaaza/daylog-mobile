@@ -4,8 +4,9 @@ export const TIMELINE_END = 24
 export const STORAGE_KEY = 'dl-tasks-v3'
 export const THEME_KEY = 'dl-theme'
 export const TEMPLATES_KEY = 'dl-templates'
-export const USERNAME_KEY = 'dl-username'
-export const AUTH_KEY = 'dl-auth'
+export const USERNAME_KEY      = 'dl-username'
+export const AUTH_KEY          = 'dl-auth'
+export const NOTIFICATIONS_KEY = 'dl-notifications'
 
 export const MAX_TASK_NAME = 100
 export const MAX_USER_NAME = 100

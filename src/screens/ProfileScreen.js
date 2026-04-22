@@ -47,6 +47,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
   const {
     darkMode, toggleDarkMode,
+    notificationsEnabled, toggleNotifications,
     userName, setUserName,
     user, logout,
     tasks,
@@ -58,15 +59,26 @@ export default function ProfileScreen() {
   const [nameInput, setNameInput]     = useState(userName)
   const [showFavorites, setShowFavorites] = useState(true)
 
-  // Collect all favorited tasks across all days
+  // Collect all favorited tasks across all days, deduplicating by parentId
+  // Tasks that span midnight share the same parentId — merge their sessions.
   const favoriteTasks = useMemo(() => {
-    const all = []
+    const byParent = new Map()
     Object.keys(tasks).forEach(dateKey => {
       tasks[dateKey].forEach(task => {
-        if (task.favorite) all.push({ ...task, dateKey })
+        if (!task.favorite) return
+        const key = task.parentId || task.id
+        if (byParent.has(key)) {
+          const existing = byParent.get(key)
+          byParent.set(key, {
+            ...existing,
+            sessions: [...existing.sessions, ...task.sessions],
+          })
+        } else {
+          byParent.set(key, { ...task, dateKey })
+        }
       })
     })
-    return all.sort((a, b) => b.createdAt - a.createdAt)
+    return Array.from(byParent.values()).sort((a, b) => b.createdAt - a.createdAt)
   }, [tasks])
 
   const displayName = (user?.name || userName || 'Your Name').trim()
@@ -208,6 +220,19 @@ export default function ProfileScreen() {
             <Switch
               value={darkMode}
               onValueChange={toggleDarkMode}
+              trackColor={{ false: C.border, true: C.amber }}
+              thumbColor="#FFFFFF"
+            />
+          }
+          colors={C}
+        />
+        <MenuRow
+          icon={<Text style={{ fontSize: 16 }}>🔔</Text>}
+          label="Notifications"
+          right={
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={toggleNotifications}
               trackColor={{ false: C.border, true: C.amber }}
               thumbColor="#FFFFFF"
             />

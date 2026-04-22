@@ -46,12 +46,29 @@ export default function StatsScreen() {
     return result
   }, [tasks, selDate, weekStart, mode, tick])
 
-  const done   = filteredTasks.filter(t => t.done).length
-  const active = filteredTasks.filter(t => getTaskStatus(t) === 'active').length
-  const idle   = filteredTasks.filter(t => getTaskStatus(t) === 'idle').length
-  const total  = filteredTasks.length
+  const taskGroups = useMemo(() => {
+    const groups = new Map()
+    filteredTasks.forEach(t => {
+      // Direct grouping by name is the most reliable for users
+      const key = (t.name || '').trim().toLowerCase()
 
-  const totalTrackedMs = filteredTasks.reduce((acc, t) => acc + getTotalMs(t, now), 0)
+      if (!groups.has(key)) {
+        groups.set(key, { ...t, ms: getTotalMs(t, now) })
+      } else {
+        const g = groups.get(key)
+        g.ms += getTotalMs(t, now)
+        if (t.done) g.done = true
+      }
+    })
+    return Array.from(groups.values()).sort((a,b) => b.ms - a.ms)
+  }, [filteredTasks, now])
+
+  const done   = taskGroups.filter(g => g.done).length
+  const active = taskGroups.filter(g => getTaskStatus(g) === 'active').length
+  const idle   = taskGroups.length - done - active
+  const total  = taskGroups.length
+
+  const totalTrackedMs = taskGroups.reduce((acc, g) => acc + g.ms, 0)
   const todayTasks  = tasks[toKey(new Date())] ?? []
   const activeTask  = todayTasks.find(t => getTaskStatus(t) === 'active')
   const activeDuration = activeTask ? formatLive(getTotalMs(activeTask, now)) : '—'
@@ -182,16 +199,14 @@ export default function StatsScreen() {
       })()}
 
       {/* Task breakdown */}
-      {filteredTasks.length > 0 && (
+      {taskGroups.length > 0 && (
         <View style={[styles.card, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 14 }]}>
           <Text style={[styles.cardTitle, { color: C.inkPrimary }]}>Tasks</Text>
-          {filteredTasks.map((task, i) => {
-            const ms      = getTotalMs(task, now)
-            const status  = getTaskStatus(task)
+          {taskGroups.map((task, i) => {
             const palette = getTaskPalette(task)
             return (
               <View
-                key={task._dateKey ? `${task.id}-${task._dateKey}-${i}` : `${task.id}-${i}`}
+                key={task.parentId || task.id}
                 style={[
                   styles.taskRow,
                   { borderTopColor: C.border },
@@ -203,7 +218,7 @@ export default function StatsScreen() {
                   {task.name}
                 </Text>
                 <Text style={[styles.taskTime, { color: C.inkMuted }]}>
-                  {ms > 0 ? formatShort(ms) : '—'}
+                  {task.ms > 0 ? formatShort(task.ms) : '—'}
                 </Text>
               </View>
             )
