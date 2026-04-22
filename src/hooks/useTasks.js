@@ -63,6 +63,23 @@ export function useTasks() {
           sanitizedTasks[date] = cleanDay
         })
       }
+      // Seal orphaned open sessions from previous days (app closed during active task)
+      const todayKeyNow = toKey(new Date())
+      Object.keys(sanitizedTasks).forEach(dateKey => {
+        if (dateKey === todayKeyNow) return
+        const [y, m, d] = dateKey.split('-').map(Number)
+        const nextDayMidnight = new Date(y, m - 1, d + 1).getTime()
+        sanitizedTasks[dateKey] = sanitizedTasks[dateKey].map(task => {
+          if (!task.sessions.some(s => !s.endTime)) return task
+          return {
+            ...task,
+            sessions: task.sessions.map(s =>
+              s.endTime ? s : { ...s, endTime: nextDayMidnight }
+            ),
+          }
+        })
+      })
+
       setTasks(sanitizedTasks)
       setDarkMode(isDark)
       setUserNameState(savedName)
@@ -85,14 +102,36 @@ export function useTasks() {
     return () => clearInterval(id)
   }, [])
 
-  // Update todayKey at midnight so new tasks land on the correct date
+  // At midnight: update todayKey and carry active tasks over to the new day
   useEffect(() => {
     const msUntilMidnight = () => {
       const now = new Date()
       return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now
     }
     const timeout = setTimeout(() => {
-      setTodayKey(toKey(new Date()))
+      const now = new Date()
+      const newDayKey = toKey(now)
+      const midnightTs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+
+      setTasks(prev => {
+        const next = { ...prev }
+        Object.keys(prev).forEach(dateKey => {
+          if (dateKey === newDayKey) return
+          next[dateKey] = prev[dateKey].map(task => {
+            if (!task.sessions.some(s => !s.endTime)) return task
+            const newDayTasks = next[newDayKey] ?? []
+            if (!newDayTasks.some(t => t.id === task.id)) {
+              next[newDayKey] = [
+                ...newDayTasks,
+                { ...task, sessions: [{ id: uid(), startTime: midnightTs, endTime: null }], done: false },
+              ]
+            }
+            return { ...task, sessions: task.sessions.map(s => s.endTime ? s : { ...s, endTime: midnightTs }) }
+          })
+        })
+        return next
+      })
+      setTodayKey(newDayKey)
     }, msUntilMidnight())
     return () => clearTimeout(timeout)
   }, [todayKey])
