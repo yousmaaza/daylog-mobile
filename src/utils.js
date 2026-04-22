@@ -35,8 +35,10 @@ export function getTaskStatus(task) {
 export function getTotalMs(task, now) {
   const sessions = task.sessions || []
   return sessions.reduce((acc, s) => {
-    const end = s.endTime ?? now
-    return acc + (end - s.startTime)
+    const start = Number(s.startTime)
+    const end   = s.endTime ? Number(s.endTime) : now
+    if (isNaN(start)) return acc
+    return acc + Math.max(0, end - start)
   }, 0)
 }
 

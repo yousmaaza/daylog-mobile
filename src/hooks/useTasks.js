@@ -27,6 +27,8 @@ export function useTasks() {
       loadTasks(), loadTheme(), loadUserName(), loadAuth(),
     ]).then(([savedTasks, isDark, savedName, savedUser]) => {
       const sanitizedTasks = {}
+      const nameToPId = {} // Link tasks by name if parentId is missing
+
       if (savedTasks && typeof savedTasks === 'object') {
         Object.keys(savedTasks).forEach(date => {
           const dayTasks = savedTasks[date]
@@ -52,11 +54,15 @@ export function useTasks() {
                 }
               })
               
+              const pId = task.parentId || nameToPId[task.name] || task.id
+              if (!nameToPId[task.name]) nameToPId[task.name] = pId
+
               cleanDay.push({ 
                 ...task, 
                 sessions: cleanSess,
                 favorite: !!task.favorite,
-                done: !!task.done
+                done: !!task.done,
+                parentId: pId
               })
             }
           })
@@ -154,18 +160,41 @@ export function useTasks() {
     const trimmed = (name || '').trim().slice(0, MAX_TASK_NAME)
     if (!trimmed) return null
     
+    let finalParentId = options.parentId
+    let finalTagId = options.tagId
+    let isFavorite = false
+
+    // Search for existing project properties
+    const lowerName = trimmed.toLowerCase()
+    outer: for (const dayTasks of Object.values(tasks)) {
+      for (const t of dayTasks) {
+        // If parentId matches OR name matches (and no parentId provided)
+        const nameMatch = t.name.trim().toLowerCase() === lowerName
+        const idMatch = finalParentId && (t.id === finalParentId || t.parentId === finalParentId)
+        
+        if (idMatch || (!finalParentId && nameMatch)) {
+          finalParentId = t.parentId || t.id
+          if (!finalTagId) finalTagId = t.tagId
+          isFavorite = !!t.favorite
+          break outer
+        }
+      }
+    }
+
+    const id = uid()
     const task = {
-      id:        uid(),
+      id,
+      parentId:  finalParentId || id,
       name:      trimmed,
+      tagId:     finalTagId || 'other',
       sessions:  [],
       done:      false,
+      favorite:  isFavorite,
       createdAt: Date.now(),
-      tagId:     options.tagId ?? 'other',
-      favorite:  false,
     }
     setTasks(prev => ({ ...prev, [selDate]: [...(prev[selDate] ?? []), task] }))
     return task.id
-  }, [selDate])
+  }, [tasks, selDate])
 
   const updateTask = useCallback((id, updater) => {
     const dateKey = selDateRef.current
@@ -178,10 +207,23 @@ export function useTasks() {
   // Toggle favorite across ALL dates (favorite can be from any day)
   const toggleFavorite = useCallback((taskId) => {
     setTasks(prev => {
+      // Find parentId of this task
+      let pId = taskId
+      outer: for (const dayTasks of Object.values(prev)) {
+        for (const t of dayTasks) {
+          if (t.id === taskId) {
+            pId = t.parentId || t.id
+            break outer
+          }
+        }
+      }
+
       const next = {}
       Object.keys(prev).forEach(key => {
         next[key] = prev[key].map(t =>
-          t.id === taskId ? { ...t, favorite: !t.favorite } : t
+          (t.id === taskId || (t.parentId && t.parentId === pId))
+            ? { ...t, favorite: !t.favorite }
+            : t
         )
       })
       return next
