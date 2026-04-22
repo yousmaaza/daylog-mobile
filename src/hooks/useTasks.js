@@ -6,6 +6,7 @@ import {
 } from '../storage'
 import { uid, toKey, getWeekStart, addDays } from '../utils'
 import { MAX_TASK_NAME, MAX_USER_NAME } from '../constants'
+import { applyMidnightRollover, sealOrphanedSessions } from '../midnight'
 
 export function useTasks() {
   const [tasks, setTasks]             = useState({})
@@ -64,23 +65,8 @@ export function useTasks() {
         })
       }
       // Seal orphaned open sessions from previous days (app closed during active task)
-      const todayKeyNow = toKey(new Date())
-      Object.keys(sanitizedTasks).forEach(dateKey => {
-        if (dateKey === todayKeyNow) return
-        const [y, m, d] = dateKey.split('-').map(Number)
-        const nextDayMidnight = new Date(y, m - 1, d + 1).getTime()
-        sanitizedTasks[dateKey] = sanitizedTasks[dateKey].map(task => {
-          if (!task.sessions.some(s => !s.endTime)) return task
-          return {
-            ...task,
-            sessions: task.sessions.map(s =>
-              s.endTime ? s : { ...s, endTime: nextDayMidnight }
-            ),
-          }
-        })
-      })
-
-      setTasks(sanitizedTasks)
+      const sealed = sealOrphanedSessions(sanitizedTasks, toKey(new Date()))
+      setTasks(sealed)
       setDarkMode(isDark)
       setUserNameState(savedName)
       setUser(savedUser)
@@ -109,24 +95,7 @@ export function useTasks() {
     const newDayKey  = toKey(now)
     const midnightTs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
 
-    setTasks(prev => {
-      const next = { ...prev }
-      Object.keys(prev).forEach(dateKey => {
-        if (dateKey === newDayKey) return
-        next[dateKey] = prev[dateKey].map(task => {
-          if (!task.sessions.some(s => !s.endTime)) return task
-          const newDayTasks = next[newDayKey] ?? []
-          if (!newDayTasks.some(t => t.id === task.id)) {
-            next[newDayKey] = [
-              ...newDayTasks,
-              { ...task, sessions: [{ id: uid(), startTime: midnightTs, endTime: null }], done: false },
-            ]
-          }
-          return { ...task, sessions: task.sessions.map(s => s.endTime ? s : { ...s, endTime: midnightTs }) }
-        })
-      })
-      return next
-    })
+    setTasks(prev => applyMidnightRollover(prev, newDayKey, midnightTs))
     setTodayKey(newDayKey)
     setSelDate(newDayKey)
     setWeekStart(getWeekStart(now))
