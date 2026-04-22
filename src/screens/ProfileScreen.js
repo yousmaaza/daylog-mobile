@@ -59,24 +59,26 @@ export default function ProfileScreen() {
   const [nameInput, setNameInput]     = useState(userName)
   const [showFavorites, setShowFavorites] = useState(true)
 
-  // Collect all favorited tasks across all days, deduplicating by id (midnight continuation)
+  // Collect all favorited tasks across all days, deduplicating by parentId
+  // Tasks that span midnight share the same parentId — merge their sessions.
   const favoriteTasks = useMemo(() => {
-    const byId = new Map()
+    const byParent = new Map()
     Object.keys(tasks).forEach(dateKey => {
       tasks[dateKey].forEach(task => {
         if (!task.favorite) return
-        if (byId.has(task.id)) {
-          const existing = byId.get(task.id)
-          byId.set(task.id, {
+        const key = task.parentId || task.id
+        if (byParent.has(key)) {
+          const existing = byParent.get(key)
+          byParent.set(key, {
             ...existing,
             sessions: [...existing.sessions, ...task.sessions],
           })
         } else {
-          byId.set(task.id, { ...task, dateKey })
+          byParent.set(key, { ...task, dateKey })
         }
       })
     })
-    return Array.from(byId.values()).sort((a, b) => b.createdAt - a.createdAt)
+    return Array.from(byParent.values()).sort((a, b) => b.createdAt - a.createdAt)
   }, [tasks])
 
   const displayName = (user?.name || userName || 'Your Name').trim()
