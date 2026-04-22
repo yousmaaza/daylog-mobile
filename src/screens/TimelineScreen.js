@@ -132,7 +132,9 @@ export default function TimelineScreen() {
           height   = Math.max(liveEndY - startY, 2)
           realEndY = liveEndY
         } else {
-          const clampedEnd = Math.min(endH, TIMELINE_END)
+          // Closed session that ended at/after midnight: endH (e.g. 0) < startH (e.g. 23.9)
+          const effectiveEndH = endH < startH ? TIMELINE_END : endH
+          const clampedEnd = Math.min(effectiveEndH, TIMELINE_END)
           if (clampedEnd <= clampedStart) return
           const rawH = (clampedEnd - clampedStart) * HOUR_H
           height   = Math.max(rawH, 2)
