@@ -10,6 +10,7 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
   const { tasks } = useTaskContext()
   const [value, setValue]                 = useState('')
   const [selectedTagId, setSelectedTagId] = useState('other')
+  const [selectedParentId, setSelectedParentId] = useState(null)
 
   const favoriteTasks = useMemo(() => {
     const all = []
@@ -31,11 +32,12 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
   const reset = () => {
     setValue('')
     setSelectedTagId('other')
+    setSelectedParentId(null)
   }
 
   const handleAdd = () => {
     if (value.trim()) {
-      onAdd(value.trim(), { tagId: selectedTagId })
+      onAdd(value.trim(), { tagId: selectedTagId, parentId: selectedParentId })
       reset()
     }
   }
@@ -100,6 +102,7 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
                       onPress={() => {
                         setValue(fav.name)
                         setSelectedTagId(favTagId)
+                        setSelectedParentId(fav.parentId || fav.id)
                       }}
                       activeOpacity={0.75}
                     >
@@ -126,7 +129,10 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
               placeholder="Task name…"
               placeholderTextColor={C.inkMuted}
               value={value}
-              onChangeText={setValue}
+              onChangeText={(text) => {
+                setValue(text)
+                setSelectedParentId(null)
+              }}
               onSubmitEditing={handleAdd}
               returnKeyType="done"
               autoFocus
