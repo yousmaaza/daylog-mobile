@@ -120,10 +120,16 @@ export default function TimelineScreen() {
         const clampedStart = Math.max(startH, TIMELINE_START)
         const startY = (clampedStart - TIMELINE_START) * HOUR_H
 
+        // A live session that started before midnight (startH > current endH) has crossed midnight.
+        // On the old day's view, cap its display at TIMELINE_END so it renders correctly.
+        const hasCrossedMidnight = !sess.endTime && endH < startH
+
         let height, realEndY
         if (!sess.endTime) {
-          const liveEndY = Math.max(liveNowTop, startY)
-          height   = liveEndY - startY
+          const liveEndY = hasCrossedMidnight
+            ? (TIMELINE_END - TIMELINE_START) * HOUR_H
+            : Math.max(liveNowTop, startY)
+          height   = Math.max(liveEndY - startY, 2)
           realEndY = liveEndY
         } else {
           const clampedEnd = Math.min(endH, TIMELINE_END)
@@ -137,6 +143,7 @@ export default function TimelineScreen() {
         blocks.push({
           id: blockId, taskId: task.id, name: task.name, task, colorIdx,
           isLive:  !sess.endTime,
+          hasCrossedMidnight,
           isDone:  task.done,
           startY, height, realEndY,
           startTime: sess.startTime, endTime: sess.endTime,
@@ -290,7 +297,7 @@ export default function TimelineScreen() {
             {/* ── Live session pointers — name + bar + live timer ──────────── */}
             {blocksWithCols
               .map((block, idx) => ({ block, idx }))
-              .filter(({ block }) => block.isLive)
+              .filter(({ block }) => block.isLive && !block.hasCrossedMidnight)
               .map(({ block, idx }) => {
                 const palette   = getTaskPalette(block)
                 const liveTask  = block.task

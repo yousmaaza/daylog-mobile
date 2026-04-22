@@ -102,39 +102,53 @@ export function useTasks() {
     return () => clearInterval(id)
   }, [])
 
-  // At midnight: update todayKey and carry active tasks over to the new day
+  // Carry active tasks from any past day into the new day, then navigate there.
+  // Uses no closed-over state: all reads are inside functional updaters or fresh Date calls.
+  const runMidnightRollover = useCallback(() => {
+    const now = new Date()
+    const newDayKey  = toKey(now)
+    const midnightTs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+
+    setTasks(prev => {
+      const next = { ...prev }
+      Object.keys(prev).forEach(dateKey => {
+        if (dateKey === newDayKey) return
+        next[dateKey] = prev[dateKey].map(task => {
+          if (!task.sessions.some(s => !s.endTime)) return task
+          const newDayTasks = next[newDayKey] ?? []
+          if (!newDayTasks.some(t => t.id === task.id)) {
+            next[newDayKey] = [
+              ...newDayTasks,
+              { ...task, sessions: [{ id: uid(), startTime: midnightTs, endTime: null }], done: false },
+            ]
+          }
+          return { ...task, sessions: task.sessions.map(s => s.endTime ? s : { ...s, endTime: midnightTs }) }
+        })
+      })
+      return next
+    })
+    setTodayKey(newDayKey)
+    setSelDate(newDayKey)
+    setWeekStart(getWeekStart(now))
+  }, [])
+
+  // Precise timeout fires at the exact midnight boundary
   useEffect(() => {
     const msUntilMidnight = () => {
       const now = new Date()
       return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now
     }
-    const timeout = setTimeout(() => {
-      const now = new Date()
-      const newDayKey = toKey(now)
-      const midnightTs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-
-      setTasks(prev => {
-        const next = { ...prev }
-        Object.keys(prev).forEach(dateKey => {
-          if (dateKey === newDayKey) return
-          next[dateKey] = prev[dateKey].map(task => {
-            if (!task.sessions.some(s => !s.endTime)) return task
-            const newDayTasks = next[newDayKey] ?? []
-            if (!newDayTasks.some(t => t.id === task.id)) {
-              next[newDayKey] = [
-                ...newDayTasks,
-                { ...task, sessions: [{ id: uid(), startTime: midnightTs, endTime: null }], done: false },
-              ]
-            }
-            return { ...task, sessions: task.sessions.map(s => s.endTime ? s : { ...s, endTime: midnightTs }) }
-          })
-        })
-        return next
-      })
-      setTodayKey(newDayKey)
-    }, msUntilMidnight())
+    const timeout = setTimeout(runMidnightRollover, msUntilMidnight())
     return () => clearTimeout(timeout)
-  }, [todayKey])
+  }, [todayKey, runMidnightRollover])
+
+  // Fallback: check every 30s for date change (handles system clock changes and backgrounding)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (toKey(new Date()) !== todayKey) runMidnightRollover()
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [todayKey, runMidnightRollover])
 
   const toggleDarkMode = useCallback(() => {
     setDarkMode(d => {
