@@ -14,7 +14,7 @@ import WeekPicker from '../components/WeekPicker'
 
 const LABEL_W   = 52
 const NOW_COLOR = '#F43F5E'
-const BLOCK_MIN = 32   // minimum block height so new tasks are always visible
+const BLOCK_MIN = 24   // minimum visual block height (px)
 
 // ── Column layout (no overlap) ────────────────────────────────────────────────
 
@@ -22,9 +22,10 @@ function buildColumns(blocks) {
   const sorted = [...blocks].sort((a, b) => a.startY - b.startY)
   const cols = []
   return sorted.map(block => {
+    // Tolerance of 2px handles floating-point gaps between chained sessions
     let colIdx = cols.findIndex(col => {
       const last = col[col.length - 1]
-      return last.realEndY <= block.startY + 0.5
+      return last.realEndY <= block.startY + 2
     })
     if (colIdx === -1) {
       colIdx = cols.length
@@ -129,16 +130,17 @@ export default function TimelineScreen() {
           const liveEndY = hasCrossedMidnight
             ? (TIMELINE_END - TIMELINE_START) * HOUR_H
             : Math.max(liveNowTop, startY)
-          height   = Math.max(liveEndY - startY, 2)
-          realEndY = liveEndY
+          const rawLiveH = liveEndY - startY
+          height   = Math.max(rawLiveH, BLOCK_MIN)
+          realEndY = liveEndY  // actual data end (for column layout)
         } else {
           // Closed session that ended at/after midnight: endH (e.g. 0) < startH (e.g. 23.9)
           const effectiveEndH = endH < startH ? TIMELINE_END : endH
           const clampedEnd = Math.min(effectiveEndH, TIMELINE_END)
           if (clampedEnd <= clampedStart) return
           const rawH = (clampedEnd - clampedStart) * HOUR_H
-          height   = Math.max(rawH, 2)
-          realEndY = startY + rawH
+          height   = Math.max(rawH, BLOCK_MIN)  // visual min — realEndY stays at actual end
+          realEndY = startY + rawH              // actual data end (for column layout)
         }
 
         const blockId = sess.id ? `${sess.id}` : `${task.id}-${sess.startTime}`
@@ -240,14 +242,14 @@ export default function TimelineScreen() {
               const colWidth   = timelineW / numCols
               const leftOff    = block.col * colWidth
               const palette    = getTaskPalette(block)
-              const blockH     = Math.max(block.height, 2)
+              const blockH     = block.height  // already BLOCK_MIN-clamped in rawBlocks
               const sessionMs  = block.endTime
                 ? block.endTime - block.startTime
                 : now - block.startTime
 
-              const isTiny     = blockH < 22
-              const showName     = !block.isLive && !isTiny
-              const showDuration = !block.isLive && blockH >= 44
+              // Compact = not enough room for separate header + duration rows
+              const isCompact    = blockH < BLOCK_MIN + 12
+              const showDuration = !block.isLive && !isCompact && blockH >= 48
 
               return (
                 <View
@@ -261,23 +263,36 @@ export default function TimelineScreen() {
                       width:           colWidth - 6,
                       backgroundColor: block.isLive ? palette.dot : palette.bg,
                       borderColor:     palette.border,
-                      padding:         isTiny || block.isLive ? 0 : 4,
-                      opacity:         block.isDone && !block.isLive ? 0.5 : 1,
+                      padding:         block.isLive ? 0 : isCompact ? 3 : 4,
+                      opacity:         block.isDone && !block.isLive ? 0.65 : 1,
                     },
                     block.isLive && styles.blockLive,
                    ]}
                 >
-                  {/* Status badge — top row */}
-                  {(showName || block.isDone) && (
-                    <View style={styles.blockHeader}>
-                      {showName && (
-                        <Text
-                          style={[styles.blockName, { color: palette.dot }]}
-                          numberOfLines={1}
-                        >
-                          {block.name}
-                        </Text>
+                  {/* Compact row: name + done check on one line */}
+                  {!block.isLive && isCompact && (
+                    <View style={styles.blockCompactRow}>
+                      <Text
+                        style={[styles.blockNameCompact, { color: palette.dot }]}
+                        numberOfLines={1}
+                      >
+                        {block.name}
+                      </Text>
+                      {block.isDone && (
+                        <Text style={[styles.doneCheckCompact, { color: palette.dot }]}>✓</Text>
                       )}
+                    </View>
+                  )}
+
+                  {/* Normal row: name + done check */}
+                  {!block.isLive && !isCompact && (
+                    <View style={styles.blockHeader}>
+                      <Text
+                        style={[styles.blockName, { color: palette.dot }]}
+                        numberOfLines={1}
+                      >
+                        {block.name}
+                      </Text>
                       {block.isDone && (
                         <Text style={[styles.doneCheck, { color: palette.dot }]}>✓</Text>
                       )}
@@ -431,6 +446,25 @@ const styles = StyleSheet.create({
     shadowOpacity:  0.25,
     shadowRadius:   6,
     elevation:      3,
+  },
+  blockCompactRow: {
+    flex:           1,
+    flexDirection:  'row',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+    gap:             2,
+    overflow:       'hidden',
+  },
+  blockNameCompact: {
+    fontSize:      9,
+    fontWeight:    '700',
+    letterSpacing:  0.1,
+    flex:           1,
+  },
+  doneCheckCompact: {
+    fontSize:   9,
+    fontWeight: '700',
+    flexShrink: 0,
   },
   blockHeader: {
     flexDirection:  'row',
