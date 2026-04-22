@@ -130,17 +130,19 @@ export default function TimelineScreen() {
           const liveEndY = hasCrossedMidnight
             ? (TIMELINE_END - TIMELINE_START) * HOUR_H
             : Math.max(liveNowTop, startY)
-          const rawLiveH = liveEndY - startY
-          height   = Math.max(rawLiveH, BLOCK_MIN)
-          realEndY = liveEndY  // actual data end (for column layout)
+          // Live blocks keep their true height — now-line must stay at the block's bottom edge
+          height   = Math.max(liveEndY - startY, 2)
+          realEndY = liveEndY
         } else {
           // Closed session that ended at/after midnight: endH (e.g. 0) < startH (e.g. 23.9)
           const effectiveEndH = endH < startH ? TIMELINE_END : endH
           const clampedEnd = Math.min(effectiveEndH, TIMELINE_END)
           if (clampedEnd <= clampedStart) return
           const rawH = (clampedEnd - clampedStart) * HOUR_H
-          height   = Math.max(rawH, BLOCK_MIN)  // visual min — realEndY stays at actual end
-          realEndY = startY + rawH              // actual data end (for column layout)
+          // Closed blocks get a visual minimum so short sessions stay readable.
+          // realEndY stays at actual data end so column layout is unaffected.
+          height   = Math.max(rawH, BLOCK_MIN)
+          realEndY = startY + rawH
         }
 
         const blockId = sess.id ? `${sess.id}` : `${task.id}-${sess.startTime}`
@@ -265,6 +267,8 @@ export default function TimelineScreen() {
                       borderColor:     palette.border,
                       padding:         block.isLive ? 0 : isCompact ? 3 : 4,
                       opacity:         block.isDone && !block.isLive ? 0.65 : 1,
+                      // Live blocks sit above closed blocks' visual overflow
+                      zIndex:          block.isLive ? 3 : 1,
                     },
                     block.isLive && styles.blockLive,
                    ]}
