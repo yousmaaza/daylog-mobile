@@ -99,7 +99,8 @@ function AppContent() {
   const handleAddTask = useCallback((name, options) => {
     addTask(name, options)
     setModalVisible(false)
-  }, [addTask])
+    scrollToPage(0)
+  }, [addTask, scrollToPage])
 
   // The bar sits at the very bottom; its visible icon area is TAB_H px,
   // plus insets.bottom for the home indicator region.
