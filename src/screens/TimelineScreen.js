@@ -275,18 +275,17 @@ export default function TimelineScreen() {
                   style={[
                     styles.block,
                     {
-                      top:             block.startY + 2,
-                      height:          Math.max(4, block.height - 4),
+                      top:             block.startY,
+                      height:          Math.max(1, block.height - 1),
                       left:            leftOff + 3,
                       width:           colWidth - 6,
                       backgroundColor: palette.dot,
                       borderWidth:     0,
                       padding:          8,
-                      borderRadius:    4,
+                      borderRadius:    0,
                       opacity:         1,
                       zIndex:          block.isLive ? 3 : 1,
                       minHeight:       0,
-                      borderBottomWidth: 0,
                       // No shadow for finished blocks to keep them flat and distinct
                       shadowOpacity:   (typeof darkMode !== 'undefined' && darkMode) ? 0.3 : 0,
                       elevation:       block.isLive ? 3 : 0,
@@ -458,9 +457,9 @@ const styles = StyleSheet.create({
   // Session block
   block: {
     position:        'absolute',
-    borderWidth:     1,
-    borderRadius:    4,
-    padding:         4,
+    borderWidth:     0,
+    borderRadius:    0,
+    padding:          4,
     overflow:        'hidden',
   },
   blockLive: {
