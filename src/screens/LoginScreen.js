@@ -22,7 +22,7 @@ const GoogleG = ({ size = 20 }) => (
 export default function LoginScreen() {
   const insets = useSafeAreaInsets()
   const { login, darkMode } = useTaskContext()
-  const C = darkMode ? COLORS.dark : COLORS.light
+  const _unused = (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light
 
   const [showForm, setShowForm] = useState(false)
   const [name, setName]         = useState('')
@@ -51,11 +51,11 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: C.bgApp }]}>
+    <View style={[styles.container, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp }]}>
 
       {/* Top decorative blob */}
-      <View style={[styles.blob, { backgroundColor: C.amberLight, top: -60, left: -80 }]} />
-      <View style={[styles.blob, { backgroundColor: C.amberLight, top: 100, right: -100, width: 280, height: 280 }]} />
+      <View style={[styles.blob, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amberLight, top: -60, left: -80 }]} />
+      <View style={[styles.blob, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amberLight, top: 100, right: -100, width: 280, height: 280 }]} />
 
       {/* Logo + headline */}
       <View style={[styles.hero, { paddingTop: insets.top + 60 }]}>
@@ -64,45 +64,45 @@ export default function LoginScreen() {
           style={styles.logoImage}
           resizeMode="contain"
         />
-        <Text style={[styles.appName, { color: C.inkPrimary }]}>Echo</Text>
-        <Text style={[styles.tagline, { color: C.inkMuted }]}>
+        <Text style={[styles.appName, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>Echo</Text>
+        <Text style={[styles.tagline, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>
           Harmony in every task,{'\n'}clarity in every day.
         </Text>
       </View>
 
       {/* Sign-in card */}
-      <View style={[styles.card, { backgroundColor: C.bgPanel }]}>
-        <Text style={[styles.cardTitle, { color: C.inkPrimary }]}>Get started</Text>
-        <Text style={[styles.cardSubtitle, { color: C.inkMuted }]}>
+      <View style={[styles.card, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel }]}>
+        <Text style={[styles.cardTitle, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>Get started</Text>
+        <Text style={[styles.cardSubtitle, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>
           Sign in to sync your tasks and preferences
         </Text>
 
         {/* Google button */}
         <TouchableOpacity
-          style={[styles.googleBtn, { borderColor: C.border }]}
+          style={[styles.googleBtn, { borderColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border }]}
           onPress={handleGooglePress}
           activeOpacity={0.85}
         >
           <GoogleG size={20} />
-          <Text style={[styles.googleBtnText, { color: C.inkPrimary }]}>
+          <Text style={[styles.googleBtnText, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>
             Continue with Google
           </Text>
         </TouchableOpacity>
 
         {/* Divider */}
         <View style={styles.divider}>
-          <View style={[styles.dividerLine, { backgroundColor: C.border }]} />
-          <Text style={[styles.dividerText, { color: C.inkFaint }]}>or</Text>
-          <View style={[styles.dividerLine, { backgroundColor: C.border }]} />
+          <View style={[styles.dividerLine, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border }]} />
+          <Text style={[styles.dividerText, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint }]}>or</Text>
+          <View style={[styles.dividerLine, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border }]} />
         </View>
 
         {/* Guest */}
         <TouchableOpacity
-          style={[styles.guestBtn, { backgroundColor: C.bgInput, borderColor: C.border }]}
+          style={[styles.guestBtn, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput, borderColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border }]}
           onPress={handleGuest}
           activeOpacity={0.75}
         >
-          <Text style={[styles.guestBtnText, { color: C.inkMuted }]}>Continue as Guest</Text>
+          <Text style={[styles.guestBtnText, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>Continue as Guest</Text>
         </TouchableOpacity>
       </View>
 
@@ -113,49 +113,49 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ justifyContent: 'flex-end' }}
         >
-          <View style={[styles.formSheet, { backgroundColor: C.bgPanel, paddingBottom: insets.bottom + 24 }]}>
-            <View style={[styles.handle, { backgroundColor: C.border }]} />
+          <View style={[styles.formSheet, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel, paddingBottom: insets.bottom + 24 }]}>
+            <View style={[styles.handle, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border }]} />
 
             {/* Google icon */}
             <View style={styles.formHeader}>
               <GoogleG size={28} />
-              <Text style={[styles.formTitle, { color: C.inkPrimary }]}>Sign in with Google</Text>
+              <Text style={[styles.formTitle, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>Sign in with Google</Text>
             </View>
-            <Text style={[styles.formSubtitle, { color: C.inkMuted }]}>
+            <Text style={[styles.formSubtitle, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>
               Enter your Google account details
             </Text>
 
-            <View style={[styles.inputWrap, { borderColor: C.border, backgroundColor: C.bgInput }]}>
+            <View style={[styles.inputWrap, { borderColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput }]}>
               <TextInput
-                style={[styles.input, { color: C.inkPrimary }]}
+                style={[styles.input, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}
                 placeholder="Your name"
-                placeholderTextColor={C.inkMuted}
+                placeholderTextColor={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted}
                 value={name}
                 onChangeText={setName}
                 autoFocus
-                selectionColor={C.amber}
+                selectionColor={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber}
               />
             </View>
-            <View style={[styles.inputWrap, { borderColor: C.border, backgroundColor: C.bgInput }]}>
+            <View style={[styles.inputWrap, { borderColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput }]}>
               <TextInput
-                style={[styles.input, { color: C.inkPrimary }]}
+                style={[styles.input, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}
                 placeholder="Email address (optional)"
-                placeholderTextColor={C.inkMuted}
+                placeholderTextColor={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                selectionColor={C.amber}
+                selectionColor={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber}
               />
             </View>
 
             <TouchableOpacity
-              style={[styles.confirmBtn, { backgroundColor: name.trim() ? '#4285F4' : C.bgInput }]}
+              style={[styles.confirmBtn, { backgroundColor: name.trim() ? '#4285F4' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput }]}
               onPress={handleConfirm}
               disabled={!name.trim()}
               activeOpacity={0.85}
             >
-              <Text style={[styles.confirmBtnText, { color: name.trim() ? '#FFFFFF' : C.inkMuted }]}>
+              <Text style={[styles.confirmBtnText, { color: name.trim() ? '#FFFFFF' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>
                 Sign in
               </Text>
             </TouchableOpacity>

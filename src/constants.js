@@ -12,18 +12,19 @@ export const MAX_TASK_NAME = 100
 export const MAX_USER_NAME = 100
 
 export const DEFAULT_TAGS = [
-  { id: 'work', label: 'Work', color: '#FFFFFF', bg: '#EDE9FF', border: '#D4CAFC', dot: '#7C5CFC', textColor: '#4C2FB0' },
-  { id: 'sport', label: 'Sport', color: '#FFFFFF', bg: '#D1FAE5', border: '#A7F3D0', dot: '#10B981', textColor: '#065F46' },
-  { id: 'meeting', label: 'Meeting', color: '#FFFFFF', bg: '#FFF4D6', border: '#FFE9A0', dot: '#F59E0B', textColor: '#92400E' },
-  { id: 'lunch_dinner', label: 'Lunch/Dinner', color: '#FFFFFF', bg: '#E0F7FF', border: '#BAE6FD', dot: '#38BDF8', textColor: '#0369A1' },
-  { id: 'commute', label: 'Commute', color: '#FFFFFF', bg: '#E0F2FE', border: '#BAE0FF', dot: '#06B6D4', textColor: '#0E7490' },
-  { id: 'study', label: 'Study', color: '#FFFFFF', bg: '#FCE7F3', border: '#F9C4E0', dot: '#EC4899', textColor: '#9D174D' },
-  { id: 'home', label: 'Home', color: '#FFFFFF', bg: '#FFE4E1', border: '#FFCDC8', dot: '#F97316', textColor: '#9A3412' },
-  { id: 'personal', label: 'Personal', color: '#FFFFFF', bg: '#FFE8F3', border: '#FFC6E4', dot: '#F472B6', textColor: '#BE185D' },
-  { id: 'other', label: 'Other', color: '#FFFFFF', bg: '#F5F3FF', border: '#E8E3FF', dot: '#8078A0', textColor: '#5A527A' },
+  { id: 'work', label: 'Work', color: '#FFFFFF', bg: '#C8BBFF', border: '#7C5CFC', dot: '#7C5CFC', textColor: '#4C2FB0' },
+  { id: 'sport', label: 'Sport', color: '#FFFFFF', bg: '#86EFAC', border: '#10B981', dot: '#10B981', textColor: '#065F46' },
+  { id: 'meeting', label: 'Meeting', color: '#FFFFFF', bg: '#FFE082', border: '#F59E0B', dot: '#F59E0B', textColor: '#92400E' },
+  { id: 'lunch_dinner', label: 'Lunch/Dinner', color: '#FFFFFF', bg: '#B3E5FC', border: '#0284C7', dot: '#0284C7', textColor: '#0369A1' },
+  { id: 'commute', label: 'Commute', color: '#FFFFFF', bg: '#A5F3FC', border: '#0891B2', dot: '#0891B2', textColor: '#0E7490' },
+  { id: 'study', label: 'Study', color: '#FFFFFF', bg: '#FDA4AF', border: '#EC4899', dot: '#EC4899', textColor: '#9D174D' },
+  { id: 'home', label: 'Home', color: '#FFFFFF', bg: '#FDBA74', border: '#EA580C', dot: '#EA580C', textColor: '#9A3412' },
+  { id: 'personal', label: 'Personal', color: '#FFFFFF', bg: '#F9A8D4', border: '#DB2777', dot: '#DB2777', textColor: '#BE185D' },
+  { id: 'other', label: 'Other', color: '#FFFFFF', bg: '#DDD6FE', border: '#7C3AED', dot: '#7C3AED', textColor: '#5A527A' },
 ]
 
 export const getTaskPalette = (task) => {
+  if (!task) return DEFAULT_TAGS.find(t => t.id === 'other')
   const tagId = task.tagId || (task.tags && task.tags[0]) || 'other'
   return DEFAULT_TAGS.find(t => t.id === tagId) || DEFAULT_TAGS.find(t => t.id === 'other')
 }

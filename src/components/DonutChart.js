@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
+import { COLORS } from '../constants'
 
-export default function DonutChart({ done, active, idle, colors: C }) {
+export default function DonutChart({ darkMode,  done, active, idle, colors: currentTheme }) {
   const size = 140
   const r    = size * 0.36
   const sw   = size * 0.13
@@ -34,7 +35,7 @@ export default function DonutChart({ done, active, idle, colors: C }) {
         <Circle
           cx={cx} cy={cy} r={r}
           fill="none"
-          stroke={C.border}
+          stroke={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border}
           strokeWidth={sw}
         />
         {total > 0 && (
@@ -43,7 +44,7 @@ export default function DonutChart({ done, active, idle, colors: C }) {
               <Circle
                 cx={cx} cy={cy} r={r}
                 fill="none"
-                stroke={C.inkFaint}
+                stroke={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint}
                 strokeWidth={sw}
                 strokeDasharray={[idleLen, C2 - idleLen]}
                 strokeDashoffset={idleOffset}
@@ -54,7 +55,7 @@ export default function DonutChart({ done, active, idle, colors: C }) {
               <Circle
                 cx={cx} cy={cy} r={r}
                 fill="none"
-                stroke={C.amber}
+                stroke={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber}
                 strokeWidth={sw}
                 strokeDasharray={[activeLen, C2 - activeLen]}
                 strokeDashoffset={activeOffset}
@@ -65,7 +66,7 @@ export default function DonutChart({ done, active, idle, colors: C }) {
               <Circle
                 cx={cx} cy={cy} r={r}
                 fill="none"
-                stroke={C.emerald}
+                stroke={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).emerald}
                 strokeWidth={sw}
                 strokeDasharray={[doneLen, C2 - doneLen]}
                 strokeDashoffset={doneOffset}
@@ -77,9 +78,9 @@ export default function DonutChart({ done, active, idle, colors: C }) {
       </Svg>
 
       <View style={styles.center}>
-        <Text style={[styles.pct, { color: C.inkPrimary }]}>{pct}</Text>
-        <Text style={[styles.pctSymbol, { color: C.amber }]}>%</Text>
-        <Text style={[styles.label, { color: C.inkMuted }]}>done</Text>
+        <Text style={[styles.pct, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>{pct}</Text>
+        <Text style={[styles.pctSymbol, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]}>%</Text>
+        <Text style={[styles.label, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>done</Text>
       </View>
     </View>
   )
