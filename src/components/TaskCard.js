@@ -85,6 +85,15 @@ const TaskCard = memo(function TaskCard({
                     {(task.sessions?.length ?? 0) === 0 ? 'Start' : 'Resume'}
                   </Text>
                 </TouchableOpacity>
+                {(task.sessions?.length ?? 0) > 0 && isToday && (
+                  <TouchableOpacity
+                    style={[styles.miniBtn, { backgroundColor: C.emerald }]}
+                    onPress={onDone}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.miniBtnText}>Done</Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={[styles.miniBtnOutline, { borderColor: `${palette.dot}40`, paddingHorizontal: 8 }]}
                   onPress={onDelete}
