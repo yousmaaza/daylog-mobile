@@ -17,26 +17,26 @@ const Chevron = ({ color }) => (
 )
 
 // ── Menu row component ────────────────────────────────────────────────────────
-function MenuRow({ icon, label, right, onPress, danger, colors: C, noBorder }) {
+function MenuRow({ icon, label, right, onPress, danger,  noBorder }) {
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
       style={[
         styles.menuRow,
-        !noBorder && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border },
+        !noBorder && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border },
         danger && { backgroundColor: '#FFF1F1' },
       ]}
     >
       {icon && (
-        <View style={[styles.menuIcon, { backgroundColor: danger ? '#FFE4E4' : C.bgInput }]}>
+        <View style={[styles.menuIcon, { backgroundColor: danger ? '#FFE4E4' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput }]}>
           {icon}
         </View>
       )}
-      <Text style={[styles.menuLabel, { color: danger ? '#EF4444' : C.inkPrimary }]}>{label}</Text>
+      <Text style={[styles.menuLabel, { color: danger ? '#EF4444' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>{label}</Text>
       <View style={styles.menuRight}>
         {right}
-        {onPress && <Chevron color={danger ? '#EF4444' : C.inkFaint} />}
+        {onPress && <Chevron color={danger ? '#EF4444' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint} />}
       </View>
     </TouchableOpacity>
   )
@@ -53,7 +53,7 @@ export default function ProfileScreen() {
     tasks,
     toggleFavorite,
   } = useTaskContext()
-  const C = darkMode ? COLORS.dark : COLORS.light
+  const _unused = (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light
 
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput]     = useState(userName)
@@ -92,52 +92,52 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: C.bgApp }]}
+      style={[styles.container, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <View style={[styles.header, { paddingTop: insets.top + 14, backgroundColor: C.bgApp }]}>
-        <Text style={[styles.headerTitle, { color: C.inkPrimary }]}>Profile</Text>
+      <View style={[styles.header, { paddingTop: insets.top + 14, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp }]}>
+        <Text style={[styles.headerTitle, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>Profile</Text>
         <TouchableOpacity
           onPress={toggleDarkMode}
-          style={[styles.headerBtn, { backgroundColor: C.bgPanel }]}
+          style={[styles.headerBtn, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel }]}
         >
           <Text style={{ fontSize: 17 }}>{darkMode ? '☀️' : '🌙'}</Text>
         </TouchableOpacity>
       </View>
 
       {/* ── User card ───────────────────────────────────────────────────── */}
-      <View style={[styles.userCard, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
-        <View style={[styles.avatarCircle, { backgroundColor: C.amber }]}>
+      <View style={[styles.userCard, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
+        <View style={[styles.avatarCircle, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]}>
           <Text style={styles.avatarText}>{initials || '?'}</Text>
         </View>
 
         <View style={{ flex: 1, gap: 2 }}>
           {editingName ? (
             <TextInput
-              style={[styles.nameInput, { color: C.inkPrimary, borderBottomColor: C.amber }]}
+              style={[styles.nameInput, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary, borderBottomColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]}
               value={nameInput}
               onChangeText={setNameInput}
               onSubmitEditing={handleSaveName}
               onBlur={handleSaveName}
               autoFocus
-              selectionColor={C.amber}
+              selectionColor={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber}
               maxLength={MAX_USER_NAME}
             />
           ) : (
-            <Text style={[styles.userName, { color: C.inkPrimary }]}>{displayName}</Text>
+            <Text style={[styles.userName, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>{displayName}</Text>
           )}
           {displayEmail ? (
-            <Text style={[styles.userEmail, { color: C.inkMuted }]}>{displayEmail}</Text>
+            <Text style={[styles.userEmail, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>{displayEmail}</Text>
           ) : (
-            <Text style={[styles.userEmail, { color: C.inkFaint }]}>No email set</Text>
+            <Text style={[styles.userEmail, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint }]}>No email set</Text>
           )}
         </View>
 
         <TouchableOpacity
-          style={[styles.editBtn, { backgroundColor: C.amber }]}
+          style={[styles.editBtn, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]}
           onPress={() => { setNameInput(displayName); setEditingName(true) }}
         >
           <Text style={styles.editBtnText}>✎</Text>
@@ -145,17 +145,17 @@ export default function ProfileScreen() {
       </View>
 
       {/* ── Favorites ───────────────────────────────────────────────────── */}
-      <View style={[styles.section, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
+      <View style={[styles.section, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
         <MenuRow
           icon={<Text style={{ fontSize: 16 }}>♥</Text>}
           label={`Favorites${favoriteTasks.length > 0 ? `  ·  ${favoriteTasks.length}` : ''}`}
           right={favoriteTasks.length > 0 && (
-            <Text style={[styles.badge, { backgroundColor: C.amberLight, color: C.amber }]}>
+            <Text style={[styles.badge, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amberLight, color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]}>
               {favoriteTasks.length}
             </Text>
           )}
           onPress={favoriteTasks.length > 0 ? () => setShowFavorites(v => !v) : undefined}
-          colors={C}
+          
           noBorder={showFavorites && favoriteTasks.length > 0}
         />
 
@@ -171,13 +171,13 @@ export default function ProfileScreen() {
                   key={`${task.id}-${task.dateKey}-${i}`}
                   style={[
                     styles.favRow,
-                    { borderTopColor: C.border },
+                    { borderTopColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border },
                     i > 0 && { borderTopWidth: StyleSheet.hairlineWidth },
                   ]}
                 >
                   <View style={[styles.favDot, { backgroundColor: palette.dot }]} />
                   <View style={{ flex: 1, gap: 4 }}>
-                    <Text style={[styles.favName, { color: C.inkPrimary }]} numberOfLines={1}>
+                    <Text style={[styles.favName, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]} numberOfLines={1}>
                       {task.name}
                     </Text>
                     {tagItem && (
@@ -190,7 +190,7 @@ export default function ProfileScreen() {
                   </View>
                   <View style={{ alignItems: 'flex-end', gap: 4 }}>
                     {ms > 0 && (
-                      <Text style={[styles.favTime, { color: C.inkMuted }]}>{formatShort(ms)}</Text>
+                      <Text style={[styles.favTime, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>{formatShort(ms)}</Text>
                     )}
                     <TouchableOpacity onPress={() => toggleFavorite(task.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                       <Text style={{ fontSize: 16, color: '#F472B6' }}>♥</Text>
@@ -203,8 +203,8 @@ export default function ProfileScreen() {
         )}
 
         {favoriteTasks.length === 0 && (
-          <View style={[styles.emptyFav, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.border }]}>
-            <Text style={[styles.emptyFavText, { color: C.inkFaint }]}>
+          <View style={[styles.emptyFav, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border }]}>
+            <Text style={[styles.emptyFavText, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint }]}>
               Tap ♡ on any task to add it here
             </Text>
           </View>
@@ -212,7 +212,7 @@ export default function ProfileScreen() {
       </View>
 
       {/* ── Settings ────────────────────────────────────────────────────── */}
-      <View style={[styles.section, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
+      <View style={[styles.section, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
         <MenuRow
           icon={<Text style={{ fontSize: 16 }}>{darkMode ? '☀️' : '🌙'}</Text>}
           label="Dark Mode"
@@ -220,11 +220,11 @@ export default function ProfileScreen() {
             <Switch
               value={darkMode}
               onValueChange={toggleDarkMode}
-              trackColor={{ false: C.border, true: C.amber }}
+              trackColor={{ false: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border, true: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }}
               thumbColor="#FFFFFF"
             />
           }
-          colors={C}
+          
         />
         <MenuRow
           icon={<Text style={{ fontSize: 16 }}>🔔</Text>}
@@ -233,29 +233,29 @@ export default function ProfileScreen() {
             <Switch
               value={notificationsEnabled}
               onValueChange={toggleNotifications}
-              trackColor={{ false: C.border, true: C.amber }}
+              trackColor={{ false: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border, true: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }}
               thumbColor="#FFFFFF"
             />
           }
-          colors={C}
+          
           noBorder={true}
         />
       </View>
 
       {/* ── Sign out ─────────────────────────────────────────────────────── */}
-      <View style={[styles.section, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
+      <View style={[styles.section, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
         <MenuRow
           icon={<Text style={{ fontSize: 16 }}>→</Text>}
           label="Sign Out"
           onPress={logout}
           danger
-          colors={C}
+          
           noBorder={true}
         />
       </View>
 
       {/* App info */}
-      <Text style={[styles.appVer, { color: C.inkFaint }]}>Echo  ·  v1.0</Text>
+      <Text style={[styles.appVer, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint }]}>Echo  ·  v1.0</Text>
     </ScrollView>
   )
 }

@@ -43,7 +43,6 @@ export function useTasks() {
           dayTasks.forEach(task => {
             if (task && task.id && !seenIds.has(task.id)) {
               seenIds.add(task.id)
-              
               const seenSess = new Set()
               const cleanSess = []
               const sessions = Array.isArray(task.sessions) ? task.sessions : []
@@ -284,19 +283,91 @@ export function useTasks() {
   }, [selDate])
 
   const pauseTask = useCallback((id) => {
+    const safeNow = Date.now()
     updateTask(id, t => ({
       ...t,
-      sessions: t.sessions.map(s => s.endTime ? s : { ...s, endTime: Date.now() }),
+      sessions: t.sessions.map(s => s.endTime ? s : { ...s, endTime: safeNow }),
     }))
   }, [updateTask])
 
   const doneTask = useCallback((id) => {
+    const safeNow = Date.now()
     updateTask(id, t => ({
       ...t,
-      sessions: t.sessions.map(s => s.endTime ? s : { ...s, endTime: Date.now() }),
+      sessions: t.sessions.map(s => s.endTime ? s : { ...s, endTime: safeNow }),
       done: true,
     }))
   }, [updateTask])
+  
+  const deleteSession = useCallback((taskId, sessionId) => {
+    updateTask(taskId, t => ({
+      ...t,
+      sessions: t.sessions.filter(s => (s.id || s.startTime) !== sessionId)
+    }))
+  }, [updateTask])
+
+  const updateSession = useCallback((taskId, sessionId, startTime, endTime) => {
+    const dateKey = selDateRef.current
+    const now = Date.now()
+    
+    const safeStart = Math.min(startTime, now)
+    const safeEnd   = endTime ? Math.min(endTime, now) : null
+    const finalEnd  = safeEnd || now
+
+    setTasks(prev => {
+      const dayTasks = prev[dateKey] ?? []
+      
+      const newDayTasks = dayTasks.map(t => {
+        // Filter out sessions that are FULLY included in the new range
+        // AND clip sessions that partially overlap
+        const cleanSessions = t.sessions
+          .filter(s => {
+            const sId = s.id || s.startTime
+            if (sId === sessionId) return true // Keep the session we are editing
+            
+            const os = Number(s.startTime)
+            const oe = s.endTime ? Number(s.endTime) : now
+            
+            // Delete if FULLY included: (os >= safeStart && oe <= finalEnd)
+            const isFullyIncluded = os >= safeStart && oe <= finalEnd
+            return !isFullyIncluded
+          })
+          .map(s => {
+            const sId = s.id || s.startTime
+            if (sId === sessionId) return { ...s, startTime: safeStart, endTime: safeEnd }
+            
+            let os = Number(s.startTime)
+            let oe = s.endTime ? Number(s.endTime) : now
+            
+            // Clip if partially overlapping
+            // Case A: new range starts inside this session -> clip end of this session
+            if (safeStart > os && safeStart < oe) {
+              oe = safeStart
+            }
+            // Case B: new range ends inside this session -> clip start of this session
+            if (finalEnd > os && finalEnd < oe) {
+              os = finalEnd
+            }
+            
+            // If after clipping the session is invalid (start >= end), it should have been filtered
+            // but we double check here just in case.
+            return { ...s, startTime: os, endTime: s.endTime ? oe : null }
+          })
+          // Final safety filter for invalid sessions created by clipping
+          .filter(s => {
+             const sId = s.id || s.startTime
+             if (sId === sessionId) return true
+             const os = Number(s.startTime)
+             const oe = s.endTime ? Number(s.endTime) : now
+             return oe > os + 1000 // sessions must be at least 1s
+          })
+
+        return { ...t, sessions: cleanSessions }
+      })
+
+      return { ...prev, [dateKey]: newDayTasks }
+    })
+  }, [])
 
   const deleteTask = useCallback((id) => {
     const dateKey = selDateRef.current
@@ -330,6 +401,6 @@ export function useTasks() {
     login, logout,
     prevWeek, nextWeek, goToday, selectDay,
     addTask, startTask, pauseTask, doneTask, deleteTask, reorderTasks, changeTaskTag,
-    toggleFavorite,
+    toggleFavorite, deleteSession, updateSession,
   }
 }

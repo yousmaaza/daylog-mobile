@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { DAY_SHORT, MONTH_FULL } from '../constants'
+import { COLORS, DAY_SHORT, MONTH_FULL } from '../constants'
 import { addDays, toKey } from '../utils'
 
-export default function WeekPicker({ weekStart, selDate, tasks, colors: C, onPrevWeek, onNextWeek, onSelectDay }) {
+export default function WeekPicker({ darkMode,  weekStart, selDate, tasks,  onPrevWeek, onNextWeek, onSelectDay }) {
   const todayKey = toKey(new Date())
 
   const weekDays = useMemo(() => {
@@ -23,24 +23,24 @@ export default function WeekPicker({ weekStart, selDate, tasks, colors: C, onPre
   const monthLabel = `${MONTH_FULL[selDateObj.getMonth()]} ${selDateObj.getFullYear()}`
 
   return (
-    <View style={[styles.wrapper, { backgroundColor: C.bgPanel }]}>
+    <View style={[styles.wrapper, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel }]}>
       {/* Month header + arrows */}
       <View style={styles.header}>
-        <Text style={[styles.monthLabel, { color: C.inkPrimary }]}>{monthLabel}</Text>
+        <Text style={[styles.monthLabel, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>{monthLabel}</Text>
         <View style={styles.arrows}>
           <TouchableOpacity
             onPress={onPrevWeek}
-            style={[styles.arrowBtn, { backgroundColor: C.bgInput }]}
+            style={[styles.arrowBtn, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput }]}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={[styles.arrowText, { color: C.inkMuted }]}>‹</Text>
+            <Text style={[styles.arrowText, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>‹</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onNextWeek}
-            style={[styles.arrowBtn, { backgroundColor: C.bgInput }]}
+            style={[styles.arrowBtn, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput }]}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={[styles.arrowText, { color: C.inkMuted }]}>›</Text>
+            <Text style={[styles.arrowText, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>›</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -61,15 +61,15 @@ export default function WeekPicker({ weekStart, selDate, tasks, colors: C, onPre
             >
               <Text style={[
                 styles.dayName,
-                { color: isSelected ? C.amber : C.inkMuted },
+                { color: isSelected ? ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted },
               ]}>
                 {day.shortLabel}
               </Text>
 
               <View style={[
                 styles.dayCircle,
-                isSelected && { backgroundColor: C.amber },
-                !isSelected && isToday && { borderWidth: 2, borderColor: C.amber },
+                isSelected && { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber },
+                !isSelected && isToday && { borderWidth: 2, borderColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber },
               ]}>
                 <Text style={[
                   styles.dayNum,
@@ -77,8 +77,8 @@ export default function WeekPicker({ weekStart, selDate, tasks, colors: C, onPre
                     color: isSelected
                       ? '#FFFFFF'
                       : isToday
-                        ? C.amber
-                        : C.inkPrimary,
+                        ? ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber
+                        : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary,
                   },
                 ]}>
                   {day.dayNum}
@@ -87,7 +87,7 @@ export default function WeekPicker({ weekStart, selDate, tasks, colors: C, onPre
 
               <View style={styles.dotSlot}>
                 {hasTasks && !isSelected && (
-                  <View style={[styles.dot, { backgroundColor: C.amber }]} />
+                  <View style={[styles.dot, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]} />
                 )}
               </View>
             </TouchableOpacity>

@@ -80,7 +80,7 @@ function AppContent() {
   const insets   = useSafeAreaInsets()
   const { darkMode, addTask, user, loaded, tasks, tick, notificationsEnabled } = useTaskContext()
   useTaskNotification(tasks, tick, notificationsEnabled)
-  const C = darkMode ? COLORS.dark : COLORS.light
+  const currentTheme = (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light
 
   const pagerRef = useRef(null)
   const [activePage, setActivePage] = useState(0)
@@ -99,7 +99,8 @@ function AppContent() {
   const handleAddTask = useCallback((name, options) => {
     addTask(name, options)
     setModalVisible(false)
-  }, [addTask])
+    scrollToPage(0)
+  }, [addTask, scrollToPage])
 
   // The bar sits at the very bottom; its visible icon area is TAB_H px,
   // plus insets.bottom for the home indicator region.
@@ -108,9 +109,9 @@ function AppContent() {
   // 1. Show loading spinner while reading from storage
   if (!loaded) {
     return (
-      <View style={{ flex: 1, backgroundColor: C.bgApp, justifyContent: 'center', alignItems: 'center' }}>
-        <StatusBar style={C.statusBar} />
-        <ActivityIndicator size="large" color={C.amber} />
+      <View style={{ flex: 1, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp, justifyContent: 'center', alignItems: 'center' }}>
+        <StatusBar style={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).statusBar} />
+        <ActivityIndicator size="large" color={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber} />
       </View>
     )
   }
@@ -119,15 +120,15 @@ function AppContent() {
   if (!user) {
     return (
       <>
-        <StatusBar style={C.statusBar} />
+        <StatusBar style={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).statusBar} />
         <LoginScreen />
       </>
     )
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bgApp }}>
-      <StatusBar style={C.statusBar} />
+    <View style={{ flex: 1, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp }}>
+      <StatusBar style={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).statusBar} />
 
       {/* ── Swipeable pager ─────────────────────────────────────────────── */}
       <ScrollView
@@ -151,8 +152,8 @@ function AppContent() {
         style={[
           styles.tabBar,
           {
-            backgroundColor: C.bgPanel,
-            borderTopColor:  C.border,
+            backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel,
+            borderTopColor:  ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border,
             paddingBottom:   insets.bottom,
             height:          TAB_H + insets.bottom,
           },
@@ -168,8 +169,8 @@ function AppContent() {
               onPress={() => scrollToPage(pageIdx)}
               activeOpacity={0.7}
             >
-              <Icon color={active ? C.amber : C.inkFaint} size={24} />
-              {active && <View style={[styles.activeDot, { backgroundColor: C.amber }]} />}
+              <Icon color={active ? ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint} size={24} />
+              {active && <View style={[styles.activeDot, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]} />}
             </TouchableOpacity>
           )
         })}
@@ -177,11 +178,11 @@ function AppContent() {
         {/* Center FAB */}
         <View style={styles.fabSlot}>
           <TouchableOpacity
-            style={[styles.fab, { backgroundColor: C.inkPrimary }]}
+            style={[styles.fab, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}
             onPress={() => setModalVisible(true)}
             activeOpacity={0.85}
           >
-            <Text style={[styles.fabPlus, { color: C.bgApp }]}>+</Text>
+            <Text style={[styles.fabPlus, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp }]}>+</Text>
           </TouchableOpacity>
         </View>
 
@@ -195,17 +196,17 @@ function AppContent() {
               onPress={() => scrollToPage(pageIdx)}
               activeOpacity={0.7}
             >
-              <Icon color={active ? C.amber : C.inkFaint} size={24} />
-              {active && <View style={[styles.activeDot, { backgroundColor: C.amber }]} />}
+              <Icon color={active ? ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint} size={24} />
+              {active && <View style={[styles.activeDot, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]} />}
             </TouchableOpacity>
           )
         })}
       </View>
 
       {/* ── Global AddTask modal ─────────────────────────────────────────── */}
-      <AddTaskModal
+      <AddTaskModal darkMode={darkMode}
         visible={modalVisible}
-        colors={C}
+        
         insets={insets}
         onAdd={handleAddTask}
         onClose={() => setModalVisible(false)}

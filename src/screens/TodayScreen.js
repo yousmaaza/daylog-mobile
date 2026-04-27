@@ -15,12 +15,24 @@ export default function TodayScreen() {
     selDate, weekStart, selTaskId,
     setSelTaskId, toggleDarkMode,
     prevWeek, nextWeek, goToday, selectDay,
-    startTask, pauseTask, doneTask, deleteTask, toggleFavorite, changeTaskTag,
+    startTask, pauseTask, doneTask, deleteTask, toggleFavorite, changeTaskTag, deleteSession, updateSession,
   } = useTaskContext()
 
-  const C = darkMode ? COLORS.dark : COLORS.light
+  
 
-  const dayTasks   = tasks[selDate] ?? []
+  const baseTasks  = tasks[selDate] ?? []
+  // Sort logic: 
+  // 1. Live (active) task always at the very top
+  // 2. Then incomplete tasks, newest first (highest createdAt)
+  // 3. Then completed tasks, newest first at the bottom of the list
+  const dayTasks   = [...baseTasks].sort((a, b) => {
+    if (a.active && !b.active) return -1
+    if (!a.active && b.active) return 1
+    if (a.done && !b.done) return 1
+    if (!a.done && b.done) return -1
+    return (b.createdAt || 0) - (a.createdAt || 0)
+  })
+
   const isToday    = selDate === toKey(new Date())
   const selDateObj = new Date(selDate + 'T12:00:00')
   const dayName    = DAY_FULL[selDateObj.getDay()]
@@ -31,35 +43,37 @@ export default function TodayScreen() {
   const totalCount = dayTasks.length
 
   const renderItem = useCallback(({ item, index }) => (
-    <TaskCard
+    <TaskCard darkMode={darkMode}
       task={item}
       index={index}
       tick={tick}
       isExpanded={selTaskId === item.id}
       isToday={isToday}
-      colors={C}
+      
       onPress={() => setSelTaskId(prev => prev === item.id ? null : item.id)}
       onStart={() => startTask(item.id)}
       onPause={() => pauseTask(item.id)}
       onDone={() => doneTask(item.id)}
       onDelete={() => deleteTask(item.id)}
+      onDeleteSession={(sessId) => deleteSession(item.id, sessId)}
+      onUpdateSession={(sessId, start, end) => updateSession(item.id, sessId, start, end)}
       onToggleFavorite={() => toggleFavorite(item.id)}
       onChangeTag={(tagId) => changeTaskTag(item.id, tagId)}
     />
-  ), [selTaskId, tick, C, isToday, startTask, pauseTask, doneTask, deleteTask, setSelTaskId, toggleFavorite, changeTaskTag])
+  ), [selTaskId, tick, darkMode, isToday, startTask, pauseTask, doneTask, deleteTask, deleteSession, updateSession, setSelTaskId, toggleFavorite, changeTaskTag])
 
   const keyExtractor = useCallback((item, index) => `${item.id}-${index}`, [])
 
   return (
-    <View style={[styles.container, { backgroundColor: C.bgApp }]}>
+    <View style={[styles.container, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp }]}>
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <View style={[styles.header, { paddingTop: insets.top + 14, backgroundColor: C.bgApp }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 14, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp }]}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.greeting, { color: C.inkMuted }]}>
+          <Text style={[styles.greeting, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>
             {isToday ? 'Good day!' : dayName}
           </Text>
-          <Text style={[styles.heroText, { color: C.inkPrimary }]}>
+          <Text style={[styles.heroText, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>
             {totalCount === 0
               ? `Nothing\nscheduled`
               : `You have ${totalCount}\ntask${totalCount > 1 ? 's' : ''} today`
@@ -71,7 +85,7 @@ export default function TodayScreen() {
           {!isToday && (
             <TouchableOpacity
               onPress={goToday}
-              style={[styles.todayBtn, { backgroundColor: C.amber }]}
+              style={[styles.todayBtn, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Text style={styles.todayBtnText}>Today</Text>
@@ -79,7 +93,7 @@ export default function TodayScreen() {
           )}
           <TouchableOpacity
             onPress={toggleDarkMode}
-            style={[styles.themeBtn, { backgroundColor: C.bgPanel }]}
+            style={[styles.themeBtn, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel }]}
           >
             <Text style={{ fontSize: 17 }}>{darkMode ? '☀️' : '🌙'}</Text>
           </TouchableOpacity>
@@ -87,13 +101,13 @@ export default function TodayScreen() {
       </View>
 
       {/* ── Date + progress strip ──────────────────────────────────────── */}
-      <View style={[styles.dateStrip, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 8 }]}>
-        <Text style={[styles.dateLabel, { color: C.inkMuted }]}>
+      <View style={[styles.dateStrip, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel, marginHorizontal: 16, marginBottom: 8 }]}>
+        <Text style={[styles.dateLabel, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>
           {dayName}, {dayNum} {monthStr}
         </Text>
         {totalCount > 0 && (
-          <View style={[styles.progressBadge, { backgroundColor: C.amberLight }]}>
-            <Text style={[styles.progressText, { color: C.amber }]}>
+          <View style={[styles.progressBadge, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amberLight }]}>
+            <Text style={[styles.progressText, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber }]}>
               {doneCount}/{totalCount} done
             </Text>
           </View>
@@ -101,11 +115,11 @@ export default function TodayScreen() {
       </View>
 
       {/* ── Week picker ─────────────────────────────────────────────────── */}
-      <WeekPicker
+      <WeekPicker darkMode={darkMode}
         weekStart={weekStart}
         selDate={selDate}
         tasks={tasks}
-        colors={C}
+        
         onPrevWeek={prevWeek}
         onNextWeek={nextWeek}
         onSelectDay={selectDay}
@@ -114,8 +128,8 @@ export default function TodayScreen() {
       {/* ── Tasks label ─────────────────────────────────────────────────── */}
       {totalCount > 0 && (
         <View style={[styles.sectionRow, { paddingHorizontal: 20 }]}>
-          <Text style={[styles.sectionLabel, { color: C.inkPrimary }]}>Tasks</Text>
-          <Text style={[styles.sectionCount, { color: C.inkMuted }]}>{totalCount}</Text>
+          <Text style={[styles.sectionLabel, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>Tasks</Text>
+          <Text style={[styles.sectionCount, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>{totalCount}</Text>
         </View>
       )}
 
@@ -130,10 +144,10 @@ export default function TodayScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <View style={[styles.emptyCard, { backgroundColor: C.bgPanel }]}>
-              <Text style={[styles.emptyEmoji, { color: C.inkFaint }]}>✦</Text>
-              <Text style={[styles.emptyTitle, { color: C.inkPrimary }]}>No tasks yet</Text>
-              <Text style={[styles.emptyHint, { color: C.inkMuted }]}>
+            <View style={[styles.emptyCard, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel }]}>
+              <Text style={[styles.emptyEmoji, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint }]}>✦</Text>
+              <Text style={[styles.emptyTitle, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>No tasks yet</Text>
+              <Text style={[styles.emptyHint, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>
                 Tap + below to add your first task
               </Text>
             </View>

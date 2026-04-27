@@ -1,13 +1,41 @@
 import React, { memo, useCallback } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { getTaskPalette, DEFAULT_TAGS } from '../constants'
-import { getTaskStatus, getTotalMs, formatLive, formatShort } from '../utils'
+import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native'
+import { COLORS,  getTaskPalette, DEFAULT_TAGS } from '../constants'
+import { getTaskStatus, getTotalMs, formatLive, formatShort, formatTime } from '../utils'
 
-const TaskCard = memo(function TaskCard({
-  task, index, tick, isExpanded, colors: C, isToday,
-  onPress, onStart, onPause, onDone, onDelete, onToggleFavorite, onChangeTag,
+const TaskCard = memo(function TaskCard({ darkMode, 
+  task, index, tick, isExpanded,  isToday,
+  onPress, onStart, onPause, onDone, onDelete, onDeleteSession, onUpdateSession, onToggleFavorite, onChangeTag,
 }) {
   const now     = Date.now()
+  const [showAllSess, setShowAllSess] = React.useState(false)
+  const [editingId, setEditingId]     = React.useState(null)
+  const [editStart, setEditStart]     = React.useState('')
+  const [editEnd, setEditEnd]         = React.useState('')
+
+  const handleEdit = (group) => {
+    setEditingId(group.groupKey)
+    setEditStart(formatTime(group.startTime))
+    setEditEnd(group.endTime ? formatTime(group.endTime) : '')
+  }
+
+  const saveEdit = (group) => {
+    // We update the primary session of the group
+    const base = new Date(group.startTime)
+    const parse = (str) => {
+      const [h, m] = str.split(':').map(Number)
+      const d = new Date(base)
+      d.setHours(h || 0, m || 0, 0, 0)
+      let ts = d.getTime()
+      // Rule: no session exceeds the current time
+      if (isToday && ts > now) return now
+      return ts
+    }
+    const newStart = parse(editStart)
+    const newEnd   = editEnd ? parse(editEnd) : null
+    onUpdateSession?.(group.sessionIds[0], newStart, newEnd)
+    setEditingId(null)
+  }
   const status  = getTaskStatus(task)
   const totalMs = getTotalMs(task, now)
   const palette = getTaskPalette(task)
@@ -37,7 +65,6 @@ const TaskCard = memo(function TaskCard({
     >
       <View style={[
         styles.card,
-        { backgroundColor: palette.bg, borderColor: palette.border },
         isDone && { opacity: 0.75 },
       ]}>
         {/* Top row: status pill + time + heart */}
@@ -76,22 +103,22 @@ const TaskCard = memo(function TaskCard({
             {status === 'idle' && (
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 <TouchableOpacity
-                  style={[styles.miniBtn, { backgroundColor: isToday ? palette.dot : C.border }]}
+                  style={[styles.miniBtn, { backgroundColor: isToday ? palette.dot : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border }]}
                   onPress={onStart}
                   activeOpacity={0.8}
                   disabled={!isToday}
                 >
                   <Text style={styles.miniBtnText}>
-                    {(task.sessions?.length ?? 0) === 0 ? 'Start' : 'Resume'}
+                    {(task.sessions?.length ?? 0) === 0 ? '▶ Start' : '▶ Resume'}
                   </Text>
                 </TouchableOpacity>
                 {(task.sessions?.length ?? 0) > 0 && isToday && (
                   <TouchableOpacity
-                    style={[styles.miniBtn, { backgroundColor: C.emerald }]}
+                    style={[styles.miniBtn, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).emerald }]}
                     onPress={onDone}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.miniBtnText}>Done</Text>
+                    <Text style={styles.miniBtnText}>✓ Done</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -110,14 +137,14 @@ const TaskCard = memo(function TaskCard({
                   onPress={onPause}
                   activeOpacity={0.75}
                 >
-                  <Text style={[styles.miniBtnOutlineText, { color: palette.dot }]}>Pause</Text>
+                  <Text style={[styles.miniBtnOutlineText, { color: palette.dot }]}>|| Pause</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.miniBtn, { backgroundColor: C.emerald }]}
+                  style={[styles.miniBtn, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).emerald }]}
                   onPress={onDone}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.miniBtnText}>Done</Text>
+                  <Text style={styles.miniBtnText}>✓ Done</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.miniBtnOutline, { borderColor: `${palette.dot}40`, paddingHorizontal: 8 }]}
@@ -149,8 +176,8 @@ const TaskCard = memo(function TaskCard({
           </View>
         </View>
 
-        {/* Tags */}
-        {taskTag && (
+        {/* Tags (only if not expanded) */}
+        {!isExpanded && taskTag && (
           <View style={styles.tagsRow}>
             <View style={[styles.tagChip, { backgroundColor: taskTag.bg, borderColor: taskTag.dot + '40' }]}>
               <Text style={[styles.tagText, { color: taskTag.dot }]}>{taskTag.label}</Text>
@@ -158,15 +185,114 @@ const TaskCard = memo(function TaskCard({
           </View>
         )}
 
-        {/* Expanded actions */}
+        {/* Expanded content */}
         {isExpanded && (
-          <View>
-            <View style={[styles.actions, { borderTopColor: `${palette.dot}30` }]}>
-              <View style={{ flex: 1 }} />
-            </View>
+          <View style={{ marginTop: 16 }}>
+            <View style={{ height: 1, backgroundColor: `${palette.dot}30`, marginBottom: 16 }} />
 
-            <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: `${palette.dot}30` }}>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: C.inkMuted, marginBottom: 8, letterSpacing: 0.5 }}>Change Tag</Text>
+            {/* Tags (if expanded) */}
+            {taskTag && (
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted, marginBottom: 8, letterSpacing: 0.5 }}>CURRENT TAG</Text>
+                <View style={styles.tagsRow}>
+                  <View style={[styles.tagChip, { backgroundColor: taskTag.bg, borderColor: taskTag.dot + '40' }]}>
+                    <Text style={[styles.tagText, { color: taskTag.dot }]}>{taskTag.label}</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Sessions List */}
+            {task.sessions && task.sessions.length > 0 && (
+              <View style={{ marginBottom: 16 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted, letterSpacing: 0.5 }}>
+                    SESSIONS (LAST 5 OF {task.sessions.length})
+                  </Text>
+                </View>
+                {(() => {
+                  const grouped = []
+                  task.sessions.forEach(s => {
+                    const startKey = formatTime(s.startTime)
+                    const endKey   = s.endTime ? formatTime(s.endTime) : 'Active'
+                    const groupKey = `${startKey}-${endKey}`
+                    const existing = grouped.find(g => g.groupKey === groupKey)
+                    const duration = (s.endTime ? s.endTime : now) - s.startTime
+                    if (existing && s.endTime) {
+                      existing.totalDuration += duration
+                      existing.sessionIds.push(s.id || s.startTime)
+                    } else {
+                      grouped.push({ ...s, groupKey, totalDuration: duration, sessionIds: [s.id || s.startTime] })
+                    }
+                  })
+
+                  const displayList = grouped.slice(-5)
+
+                  return displayList.map((group) => {
+                    const sId = group.id || group.startTime
+                    const isEditing = editingId === group.groupKey
+
+                    return (
+                      <View key={sId} style={{ marginBottom: 8, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput, padding: 8, borderRadius: 10 }}>
+                        {isEditing ? (
+                          <View style={{ gap: 8 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <TextInput
+                                style={{ flex: 1, height: 36, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp, borderRadius: 6, paddingHorizontal: 8, fontSize: 14, color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary, fontWeight: '700' }}
+                                value={editStart}
+                                onChangeText={setEditStart}
+                                placeholder="Start"
+                              />
+                              <Text style={{ color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }}>to</Text>
+                              <TextInput
+                                style={{ flex: 1, height: 36, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgApp, borderRadius: 6, paddingHorizontal: 8, fontSize: 14, color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary, fontWeight: '700' }}
+                                value={editEnd}
+                                onChangeText={setEditEnd}
+                                placeholder="End"
+                              />
+                            </View>
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
+                              <TouchableOpacity onPress={() => setEditingId(null)} style={{ padding: 6 }}>
+                                <Text style={{ color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted, fontSize: 12, fontWeight: '700' }}>Cancel</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={() => saveEdit(group)} style={{ backgroundColor: palette.dot, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }}>
+                                <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>Save</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        ) : (
+                          <TouchableOpacity 
+                            activeOpacity={0.7} 
+                            onPress={() => handleEdit(group)}
+                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+                          >
+                            <Text style={{ fontSize: 13, color: palette.textColor, fontWeight: '600' }}>
+                              {formatTime(group.startTime)}  <Text style={{ color: palette.dot, opacity: 0.6 }}>to</Text>  {group.endTime ? formatTime(group.endTime) : <Text style={{ color: palette.dot, fontStyle: 'italic' }}>Active now</Text>}
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                              <Text style={{ fontSize: 12, color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }}>{formatShort(group.totalDuration)}</Text>
+                              <TouchableOpacity 
+                                onPress={() => {
+                                  group.sessionIds.forEach(id => onDeleteSession && onDeleteSession(id))
+                                }} 
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                              >
+                                <View style={{ backgroundColor: `${( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).red}15`, width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}>
+                                  <Text style={{ color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).red, fontSize: 12, fontWeight: '800' }}>✕</Text>
+                                </View>
+                              </TouchableOpacity>
+                            </View>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )
+                  })
+                })()}
+              </View>
+            )}
+
+            <View style={{ marginTop: 12 }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted, marginBottom: 8, letterSpacing: 0.5 }}>CHANGE TAG</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {DEFAULT_TAGS.map(t => {
                   const active = t.id === actualTagId
@@ -177,11 +303,11 @@ const TaskCard = memo(function TaskCard({
                       style={{
                         paddingHorizontal: 12, paddingVertical: 6,
                         borderRadius: 20, borderWidth: 1,
-                        backgroundColor: active ? t.dot : C.bgInput,
-                        borderColor: active ? t.dot : C.border,
+                        backgroundColor: active ? t.dot : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput,
+                        borderColor: active ? t.dot : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border,
                       }}
                     >
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: active ? '#FFF' : C.inkMuted }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: active ? '#FFF' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }}>
                         {t.label}
                       </Text>
                     </TouchableOpacity>
@@ -205,8 +331,10 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius:  20,
-    borderWidth:   1.5,
+    backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgCard,
     padding:       18,
+    borderWidth:   1,
+    borderColor:   ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border,
     shadowColor:   '#000',
     shadowOffset:  { width: 0, height: 4 },
     shadowOpacity: 0.06,

@@ -63,3 +63,11 @@ export function formatShort(ms) {
   if (totalSec > 0) return `${totalSec}s`
   return '0s'
 }
+
+export function formatTime(ms) {
+  if (!ms) return ''
+  const d = new Date(Number(ms))
+  const h = String(d.getHours()).padStart(2, '0')
+  const m = String(d.getMinutes()).padStart(2, '0')
+  return `${h}:${m}`
+}

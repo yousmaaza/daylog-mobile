@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react'
-import {
+import { 
   Modal, View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, KeyboardAvoidingView, Platform, Pressable,
 } from 'react-native'
 import { useTaskContext } from '../context/TaskContext'
-import { DEFAULT_TAGS, MAX_TASK_NAME } from '../constants'
+import { COLORS, DEFAULT_TAGS, MAX_TASK_NAME } from '../constants'
 
-export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClose }) {
+export default function AddTaskModal({ darkMode,  visible,  insets, onAdd, onClose }) {
   const { tasks } = useTaskContext()
   const [value, setValue]                 = useState('')
   const [selectedTagId, setSelectedTagId] = useState('other')
@@ -65,21 +65,21 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
       >
         <View style={[
           styles.sheet,
-          { backgroundColor: C.bgPanel, paddingBottom: insets.bottom + 24 },
+          { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgPanel, paddingBottom: insets.bottom + 24 },
         ]}>
           {/* Handle */}
-          <View style={[styles.handle, { backgroundColor: C.border }]} />
+          <View style={[styles.handle, { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border }]} />
 
           {/* Title */}
-          <Text style={[styles.title, { color: C.inkPrimary }]}>New Task</Text>
-          <Text style={[styles.subtitle, { color: C.inkMuted }]}>
+          <Text style={[styles.title, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}>New Task</Text>
+          <Text style={[styles.subtitle, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>
             What do you need to get done?
           </Text>
 
           {/* Favorites quick pick */}
           {favoriteTasks.length > 0 && (
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: C.inkMuted }]}>♥ Favorites</Text>
+              <Text style={[styles.sectionLabel, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>♥ Favorites</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -95,8 +95,8 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
                       style={[
                         styles.chip,
                         {
-                          backgroundColor: isSelected ? (tag?.dot ?? C.amber) : C.bgInput,
-                          borderColor:     isSelected ? (tag?.dot ?? C.amber) : C.border,
+                          backgroundColor: isSelected ? (tag?.dot ?? ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber) : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput,
+                          borderColor:     isSelected ? (tag?.dot ?? ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber) : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border,
                         },
                       ]}
                       onPress={() => {
@@ -108,7 +108,7 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
                     >
                       <Text style={[
                         styles.chipText,
-                        { color: isSelected ? '#FFFFFF' : C.inkSecondary },
+                        { color: isSelected ? '#FFFFFF' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkSecondary },
                       ]}>
                         {fav.name}
                       </Text>
@@ -122,12 +122,12 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
           {/* Input */}
           <View style={[
             styles.inputWrap,
-            { borderColor: value.trim() ? C.amber : C.border, backgroundColor: C.bgInput },
+            { borderColor: value.trim() ? ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border, backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput },
           ]}>
             <TextInput
-              style={[styles.input, { color: C.inkPrimary }]}
+              style={[styles.input, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkPrimary }]}
               placeholder="Task name…"
-              placeholderTextColor={C.inkMuted}
+              placeholderTextColor={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted}
               value={value}
               onChangeText={(text) => {
                 setValue(text)
@@ -136,14 +136,14 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
               onSubmitEditing={handleAdd}
               returnKeyType="done"
               autoFocus
-              selectionColor={C.amber}
+              selectionColor={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber}
               maxLength={MAX_TASK_NAME}
             />
           </View>
 
           {/* Tags */}
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: C.inkMuted }]}>Tags</Text>
+            <Text style={[styles.sectionLabel, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>Tags</Text>
             <View style={styles.tagsGrid}>
               {DEFAULT_TAGS.map(tag => {
                 const active = selectedTagId === tag.id
@@ -153,8 +153,8 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
                     style={[
                       styles.tagBtn,
                       {
-                        backgroundColor: active ? tag.dot : C.bgInput,
-                        borderColor:     active ? tag.dot : C.border,
+                        backgroundColor: active ? tag.dot : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput,
+                        borderColor:     active ? tag.dot : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).border,
                       },
                     ]}
                     onPress={() => selectTag(tag.id)}
@@ -162,7 +162,7 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
                   >
                     <Text style={[
                       styles.tagBtnText,
-                      { color: active ? '#FFFFFF' : C.inkMuted },
+                      { color: active ? '#FFFFFF' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted },
                     ]}>
                       {tag.label}
                     </Text>
@@ -174,14 +174,14 @@ export default function AddTaskModal({ visible, colors: C, insets, onAdd, onClos
 
           {/* Add button */}
           <TouchableOpacity
-            style={[styles.addBtn, { backgroundColor: value.trim() ? C.amber : C.bgInput }]}
+            style={[styles.addBtn, { backgroundColor: value.trim() ? ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).bgInput }]}
             onPress={handleAdd}
             disabled={!value.trim()}
             activeOpacity={0.85}
           >
             <Text style={[
               styles.addBtnText,
-              { color: value.trim() ? '#FFFFFF' : C.inkMuted },
+              { color: value.trim() ? '#FFFFFF' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted },
             ]}>
               Add Task
             </Text>
