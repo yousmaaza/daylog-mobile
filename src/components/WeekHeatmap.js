@@ -86,7 +86,8 @@ function DayHeatmap({ tasks, selDate, darkMode }) {
   const hourly = useMemo(() => getHourlyMs(dayTasks, selDate, now), [selDate, tasks])
   const maxMs = Math.max(...hourly, 1)
   const { width } = useWindowDimensions()
-  const cell = Math.floor((width - 32 - 5 * 3) / 6)
+  // 72 = 16*2 card marginHorizontal + 20*2 card padding
+  const cell = Math.floor((width - 72 - 5 * 3) / 6)
 
   return (
     <View>
@@ -143,7 +144,7 @@ function WeekHeatmapView({ tasks, weekStart, todayKey, darkMode }) {
 
   const maxMs = Math.max(...days.map(d => d.ms), 1)
   const { width } = useWindowDimensions()
-  const cell = Math.floor((width - 32 - 6 * 4) / 7)
+  const cell = Math.floor((width - 72 - 6 * 4) / 7)
 
   return (
     <View>
@@ -218,7 +219,9 @@ function MonthHeatmapView({ tasks, selDate, todayKey, darkMode }) {
   const LABEL_W = 24
   const GAP = 3
   const nw = weeks.length
-  const cell = Math.floor((width - 32 - LABEL_W - (nw - 1) * GAP) / nw)
+  // cellW fills available card width; cellH capped at 36 so 7 rows ≤ 270px total
+  const cellW = Math.floor((width - 72 - LABEL_W - nw * GAP) / nw)
+  const cellH = Math.min(cellW, 36)
 
   return (
     <View>
@@ -226,7 +229,7 @@ function MonthHeatmapView({ tasks, selDate, todayKey, darkMode }) {
         {/* Day-of-week labels */}
         <View style={{ width: LABEL_W, gap: GAP }}>
           {DAY_LABELS.map((d, i) => (
-            <View key={i} style={{ height: cell, justifyContent: 'center' }}>
+            <View key={i} style={{ height: cellH, justifyContent: 'center' }}>
               {i % 2 === 0 && <Text style={{ fontSize: 8, color: C.inkMuted }}>{d.slice(0, 2)}</Text>}
             </View>
           ))}
@@ -235,7 +238,7 @@ function MonthHeatmapView({ tasks, selDate, todayKey, darkMode }) {
         {weeks.map((week, w) => (
           <View key={w} style={{ gap: GAP }}>
             {week.map((c, row) => {
-              if (!c) return <View key={row} style={{ width: cell, height: cell }} />
+              if (!c) return <View key={row} style={{ width: cellW, height: cellH }} />
               const v = iv(c.ms, maxMs)
               const isSel = sel?.dateKey === c.dateKey
               return (
@@ -243,7 +246,7 @@ function MonthHeatmapView({ tasks, selDate, todayKey, darkMode }) {
                   key={c.dateKey}
                   onPress={() => setSel(isSel ? null : c)}
                   style={[
-                    { width: cell, height: cell, borderRadius: 2, backgroundColor: cellColor(v) },
+                    { width: cellW, height: cellH, borderRadius: 2, backgroundColor: cellColor(v) },
                     (c.isToday || isSel) && { borderWidth: 2, borderColor: C.amber },
                   ]}
                   activeOpacity={0.7}
