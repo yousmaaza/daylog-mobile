@@ -191,23 +191,24 @@ export default function TimelineScreen() {
     return arr
   }, [])
 
+  const C          = darkMode ? COLORS.dark : COLORS.light
   const selDateObj = new Date(selDate + 'T12:00:00')
   const dayLabel   = `${DAY_FULL[selDateObj.getDay()]}, ${selDateObj.getDate()} ${MONTH_FULL[selDateObj.getMonth()]}`
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <View style={[styles.container, { backgroundColor: '#F8F9FA' }]}>
+    <View style={[styles.container, { backgroundColor: C.bgApp }]}>
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <View style={[styles.header, { backgroundColor: '#F8F9FA', paddingTop: insets.top + 14 }]}>
+      <View style={[styles.header, { backgroundColor: C.bgApp, paddingTop: insets.top + 14 }]}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: '#1A1A1A' }]}>Timeline</Text>
-          <Text style={[styles.dayLabel, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>{dayLabel}</Text>
+          <Text style={[styles.title, { color: C.inkPrimary }]}>Timeline</Text>
+          <Text style={[styles.dayLabel, { color: C.inkMuted }]}>{dayLabel}</Text>
         </View>
         <TouchableOpacity
           onPress={toggleDarkMode}
-          style={[styles.themeBtn, { backgroundColor: '#FFFFFF' }]}
+          style={[styles.themeBtn, { backgroundColor: C.bgPanel }]}
         >
           <Text style={{ fontSize: 17 }}>{darkMode ? '☀️' : '🌙'}</Text>
         </TouchableOpacity>
@@ -227,7 +228,7 @@ export default function TimelineScreen() {
       {/* ── Timeline scroll ──────────────────────────────────────────────────── */}
       <ScrollView
         ref={scrollRef}
-        style={{ flex: 1, backgroundColor: '#F8F9FA' }}
+        style={{ flex: 1, backgroundColor: C.bgApp }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}
       >
@@ -238,11 +239,11 @@ export default function TimelineScreen() {
             const top    = (h - TIMELINE_START) * HOUR_H
             const label = `${String(h).padStart(2, '0')}:00`
             return (
-              <View key={h} style={[styles.hourRow, { top, borderTopColor: '#E5E7EB' }]}>
+              <View key={h} style={[styles.hourRow, { top, borderTopColor: C.border }]}>
                 <View style={styles.hourLabelWrap}>
-                  <Text style={[styles.hourNum, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted, fontSize: 11 }]}>{label}</Text>
+                  <Text style={[styles.hourNum, { color: C.inkMuted, fontSize: 11 }]}>{label}</Text>
                 </View>
-                <View style={[styles.hourLine, { backgroundColor: '#E5E7EB' }]} />
+                <View style={[styles.hourLine, { backgroundColor: C.border }]} />
               </View>
             )
           })}
@@ -287,7 +288,7 @@ export default function TimelineScreen() {
                       zIndex:          block.isLive ? 3 : 1,
                       minHeight:       0,
                       // No shadow for finished blocks to keep them flat and distinct
-                      shadowOpacity:   (typeof darkMode !== 'undefined' && darkMode) ? 0.3 : 0,
+                      shadowOpacity:   darkMode ? 0.3 : 0,
                       elevation:       block.isLive ? 3 : 0,
                     },
                    ]}
@@ -360,12 +361,12 @@ export default function TimelineScreen() {
                     shadowColor:     palette.dot,
                   }]} />
                   <Text
-                    style={[styles.pointerName, { color: (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark.inkPrimary : COLORS.light.inkPrimary }]}
+                    style={[styles.pointerName, { color: C.inkPrimary }]}
                     numberOfLines={1}
                   >
                     {block.name}
                   </Text>
-                  <View style={[styles.pointerBar, { backgroundColor: (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark.inkFaint : COLORS.light.inkFaint }]} />
+                  <View style={[styles.pointerBar, { backgroundColor: C.inkFaint }]} />
                   <Text style={[styles.pointerTime, { color: palette.dot }]}>
                     {formatLive(totalMs)}
                   </Text>
