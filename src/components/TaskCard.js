@@ -77,7 +77,7 @@ const TaskCard = memo(function TaskCard({ darkMode,
           <View style={styles.topRight}>
             <View style={styles.timeWrap}>
               {isActive && <View style={[styles.liveDot, { backgroundColor: palette.dot }]} />}
-              <Text style={[styles.timeText, { color: palette.textColor }]}>{timeText}</Text>
+              <Text style={[styles.timeText, { color: darkMode ? palette.dot : palette.textColor }]}>{timeText}</Text>
             </View>
             <TouchableOpacity onPress={handleFavorite} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <Text style={[styles.heart, isFavorite && styles.heartActive]}>
@@ -92,7 +92,7 @@ const TaskCard = memo(function TaskCard({ darkMode,
           <Text
             style={[
               styles.taskName,
-              { color: palette.textColor, flex: 1 },
+              { color: darkMode ? C.inkPrimary : palette.textColor, flex: 1 },
               isDone && { textDecorationLine: 'line-through' },
             ]}
             numberOfLines={2}
