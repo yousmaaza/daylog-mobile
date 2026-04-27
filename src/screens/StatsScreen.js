@@ -13,6 +13,7 @@ export default function StatsScreen() {
   const insets = useSafeAreaInsets()
   const { tasks, darkMode, tick, selDate, weekStart, toggleDarkMode } = useTaskContext()
   
+  const C = darkMode ? COLORS.dark : COLORS.light
   const [modeIdx, setModeIdx] = useState(0)
   const mode = MODES[modeIdx].toLowerCase()
 
@@ -75,39 +76,39 @@ export default function StatsScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: '#F8F9FA' }]}
+      style={[styles.container, { backgroundColor: C.bgApp }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 14, backgroundColor: '#F8F9FA' }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 14, backgroundColor: C.bgApp }]}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: '#1A1A1A' }]}>Overview</Text>
-          <Text style={[styles.subtitle, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>Your productivity at a glance</Text>
+          <Text style={[styles.title, { color: C.inkPrimary }]}>Overview</Text>
+          <Text style={[styles.subtitle, { color: C.inkMuted }]}>Your productivity at a glance</Text>
         </View>
         <TouchableOpacity
           onPress={toggleDarkMode}
-          style={[styles.themeBtn, { backgroundColor: '#FFFFFF' }]}
+          style={[styles.themeBtn, { backgroundColor: C.bgPanel }]}
         >
           <Text style={{ fontSize: 17 }}>{darkMode ? '☀️' : '🌙'}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Mode toggle */}
-      <View style={[styles.modeWrap, { backgroundColor: '#FFFFFF', marginHorizontal: 16, marginBottom: 14 }]}>
+      <View style={[styles.modeWrap, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 14 }]}>
         {MODES.map((m, i) => (
           <TouchableOpacity
             key={m}
             style={[
               styles.modeBtn,
-              modeIdx === i && { backgroundColor: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber },
+              modeIdx === i && { backgroundColor: C.amber },
             ]}
             onPress={() => setModeIdx(i)}
             activeOpacity={0.75}
           >
             <Text style={[
               styles.modeBtnText,
-              { color: modeIdx === i ? '#FFFFFF' : ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted },
+              { color: modeIdx === i ? '#FFFFFF' : C.inkMuted },
             ]}>
               {m}
             </Text>
@@ -116,22 +117,22 @@ export default function StatsScreen() {
       </View>
 
       {/* Donut + legend */}
-      <View style={[styles.card, { backgroundColor: '#FFFFFF', marginHorizontal: 16, marginBottom: 14 }]}>
-        <Text style={[styles.cardTitle, { color: '#1A1A1A' }]}>Distribution</Text>
+      <View style={[styles.card, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 14 }]}>
+        <Text style={[styles.cardTitle, { color: C.inkPrimary }]}>Distribution</Text>
 
         <View style={styles.donutRow}>
           <DonutChart darkMode={darkMode} done={done} active={active} idle={idle}  />
 
           <View style={styles.legend}>
             {[
-              { label: 'Done',   value: done,   color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).emerald },
-              { label: 'Active', value: active, color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber   },
-              { label: 'Idle',   value: idle,   color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkFaint },
+              { label: 'Done',   value: done,   color: C.emerald },
+              { label: 'Active', value: active, color: C.amber   },
+              { label: 'Idle',   value: idle,   color: C.inkFaint },
             ].map(item => (
               <View key={item.label} style={styles.legendRow}>
                 <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                <Text style={[styles.legendLabel, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>{item.label}</Text>
-                <Text style={[styles.legendValue, { color: '#1A1A1A' }]}>{item.value}</Text>
+                <Text style={[styles.legendLabel, { color: C.inkMuted }]}>{item.label}</Text>
+                <Text style={[styles.legendValue, { color: C.inkPrimary }]}>{item.value}</Text>
               </View>
             ))}
           </View>
@@ -139,8 +140,8 @@ export default function StatsScreen() {
       </View>
 
       {/* Summary stats */}
-      <View style={[styles.card, { backgroundColor: '#FFFFFF', marginHorizontal: 16, marginBottom: 14 }]}>
-        <Text style={[styles.cardTitle, { color: '#1A1A1A' }]}>Summary</Text>
+      <View style={[styles.card, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 14 }]}>
+        <Text style={[styles.cardTitle, { color: C.inkPrimary }]}>Summary</Text>
         <View style={styles.statsRow}>
           {[
             { label: 'Total',   value: String(total) },
@@ -151,12 +152,12 @@ export default function StatsScreen() {
               key={item.label}
               style={[
                 styles.statCell,
-                { borderColor: '#E5E7EB' },
+                { borderColor: C.border },
                 i < 2 && { borderRightWidth: StyleSheet.hairlineWidth },
               ]}
             >
-              <Text style={[styles.statValue, { color: '#1A1A1A' }]}>{item.value}</Text>
-              <Text style={[styles.statLabel, { color: ( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).inkMuted }]}>{item.label}</Text>
+              <Text style={[styles.statValue, { color: C.inkPrimary }]}>{item.value}</Text>
+              <Text style={[styles.statLabel, { color: C.inkMuted }]}>{item.label}</Text>
             </View>
           ))}
         </View>
@@ -174,17 +175,17 @@ export default function StatsScreen() {
         if (tagTimes.length === 0) return null
 
         return (
-          <View style={[styles.card, { backgroundColor: '#FFFFFF', marginHorizontal: 16, marginBottom: 14 }]}>
-            <Text style={[styles.cardTitle, { color: '#1A1A1A' }]}>Time by Tag</Text>
+          <View style={[styles.card, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 14 }]}>
+            <Text style={[styles.cardTitle, { color: C.inkPrimary }]}>Time by Tag</Text>
             {tagTimes.map((item, i) => (
               <React.Fragment key={item.tag.id}>
-                {i > 0 && <View style={{ height: 1, backgroundColor: (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark.border : COLORS.light.border }} />}
+                {i > 0 && <View style={{ height: 1, backgroundColor: C.border }} />}
                 <View style={styles.taskRow}>
                   <View style={[styles.taskDot, { backgroundColor: item.tag.dot }]} />
-                  <Text style={[styles.taskName, { color: (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark.inkPrimary : COLORS.light.inkPrimary }]} numberOfLines={1}>
+                  <Text style={[styles.taskName, { color: C.inkPrimary }]} numberOfLines={1}>
                     {item.tag.label}
                   </Text>
-                  <Text style={[styles.taskTime, { color: (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark.inkMuted : COLORS.light.inkMuted }]}>
+                  <Text style={[styles.taskTime, { color: C.inkMuted }]}>
                     {formatShort(item.ms)}
                   </Text>
                 </View>
@@ -196,19 +197,19 @@ export default function StatsScreen() {
 
       {/* Task breakdown */}
       {taskGroups.length > 0 && (
-        <View style={[styles.card, { backgroundColor: '#FFFFFF', marginHorizontal: 16, marginBottom: 14 }]}>
-          <Text style={[styles.cardTitle, { color: '#1A1A1A' }]}>Tasks</Text>
+        <View style={[styles.card, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 14 }]}>
+          <Text style={[styles.cardTitle, { color: C.inkPrimary }]}>Tasks</Text>
           {taskGroups.map((task, i) => {
             const palette = getTaskPalette(task) || { dot: '#7C5CFC', bg: '#F1E9FF', border: '#DDD6FE' }
             return (
               <React.Fragment key={task.parentId || task.id}>
-                {i > 0 && <View style={{ height: 1, backgroundColor: (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark.border : COLORS.light.border }} />}
+                {i > 0 && <View style={{ height: 1, backgroundColor: C.border }} />}
                 <View style={styles.taskRow}>
                   <View style={[styles.taskDot, { backgroundColor: palette.dot }]} />
-                  <Text style={[styles.taskName, { color: (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark.inkPrimary : COLORS.light.inkPrimary }]} numberOfLines={1}>
+                  <Text style={[styles.taskName, { color: C.inkPrimary }]} numberOfLines={1}>
                     {task.name}
                   </Text>
-                  <Text style={[styles.taskTime, { color: (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark.inkMuted : COLORS.light.inkMuted }]}>
+                  <Text style={[styles.taskTime, { color: C.inkMuted }]}>
                     {task.ms > 0 ? formatShort(task.ms) : '—'}
                   </Text>
                 </View>
