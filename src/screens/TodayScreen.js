@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react'
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
+import React, { useCallback, useState } from 'react'
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Linking } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTaskContext } from '../context/TaskContext'
 import { COLORS, DAY_FULL, MONTH_FULL } from '../constants'
@@ -7,7 +7,8 @@ import { toKey } from '../utils'
 import WeekPicker from '../components/WeekPicker'
 import TaskCard from '../components/TaskCard'
 
-// onAddTask prop is called when the user taps the "add" hint in the empty state
+const FEEDBACK_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdlNFH-C9NWFXdbYcSWkz_9d5qvsl2XZK9LqkbHScVp3xrCbQ/viewform'
+
 export default function TodayScreen() {
   const insets = useSafeAreaInsets()
   const {
@@ -18,7 +19,8 @@ export default function TodayScreen() {
     startTask, pauseTask, doneTask, deleteTask, toggleFavorite, changeTaskTag, deleteSession, updateSession,
   } = useTaskContext()
 
-  
+  const [feedbackDismissed, setFeedbackDismissed] = useState(false)
+  const C = darkMode ? COLORS.dark : COLORS.light
 
   const baseTasks  = tasks[selDate] ?? []
   // Sort logic: 
@@ -113,6 +115,34 @@ export default function TodayScreen() {
           </View>
         )}
       </View>
+
+      {/* ── Feedback banner ─────────────────────────────────────────────── */}
+      {!feedbackDismissed && (
+        <View style={[
+          styles.feedbackBanner,
+          { backgroundColor: C.amber, marginHorizontal: 16, marginBottom: 8 },
+        ]}>
+          <Text style={styles.feedbackEmoji}>💬</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.feedbackTitle}>Help us improve Echo</Text>
+            <Text style={styles.feedbackSub}>2 min · anonymous survey</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => Linking.openURL(FEEDBACK_URL)}
+            style={styles.feedbackBtn}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.feedbackBtnText}>Share feedback</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setFeedbackDismissed(true)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{ paddingLeft: 8 }}
+          >
+            <Text style={styles.feedbackClose}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* ── Week picker ─────────────────────────────────────────────────── */}
       <WeekPicker darkMode={darkMode}
@@ -270,5 +300,46 @@ const styles = StyleSheet.create({
     fontSize:  14,
     marginTop:  2,
     textAlign: 'center',
+  },
+
+  feedbackBanner: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    borderRadius:   14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap:             8,
+  },
+  feedbackEmoji: {
+    fontSize:  18,
+    flexShrink: 0,
+  },
+  feedbackTitle: {
+    color:      '#FFFFFF',
+    fontSize:   13,
+    fontWeight: '700',
+    lineHeight: 17,
+  },
+  feedbackSub: {
+    color:    'rgba(255,255,255,0.75)',
+    fontSize: 11,
+    marginTop: 1,
+  },
+  feedbackBtn: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 10,
+    paddingVertical:    6,
+    borderRadius:      10,
+    flexShrink:        0,
+  },
+  feedbackBtnText: {
+    color:      '#FFFFFF',
+    fontSize:   11,
+    fontWeight: '700',
+  },
+  feedbackClose: {
+    color:      'rgba(255,255,255,0.8)',
+    fontSize:   14,
+    fontWeight: '600',
   },
 })
