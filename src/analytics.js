@@ -6,8 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 // To activate: fill MEASUREMENT_ID and API_SECRET from:
 //   Firebase Console → Analytics → Admin → Data Streams → your iOS stream
 //   → Measurement Protocol API secrets → Create
-const MEASUREMENT_ID = '' // e.g. 'G-XXXXXXXXXX'
-const API_SECRET      = '' // Measurement Protocol API secret
+const MEASUREMENT_ID = 'G-Q0B9FWJFCC' // e.g. 'G-XXXXXXXXXX'
+const API_SECRET      = 'PO8o3bDYQT6UBSqLnmv62A' // Measurement Protocol API secret
 
 const ENDPOINT = `https://www.google-analytics.com/mp/collect?measurement_id=${MEASUREMENT_ID}&api_secret=${API_SECRET}`
 const CLIENT_ID_KEY = 'dl-analytics-cid'
