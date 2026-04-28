@@ -31,18 +31,6 @@
           "icon": "./assets/icon.png",
           "color": "#7C5CFC"
         }
-      ],
-      "@react-native-firebase/app",
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "deploymentTarget": "15.1",
-            "podfileProperties": {
-              "RNFirebaseAnalyticsWithoutAdIdSupport": "true"
-            }
-          }
-        }
       ]
     ],
     "extra": {
