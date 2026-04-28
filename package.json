@@ -20,6 +20,8 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-firebase/analytics": "^24.0.0",
+    "@react-native-firebase/app": "^24.0.0",
     "expo": "~54.0.0",
     "expo-file-system": "~19.0.22",
     "expo-notifications": "^55.0.19",

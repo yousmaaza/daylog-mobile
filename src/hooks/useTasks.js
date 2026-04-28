@@ -8,6 +8,10 @@ import {
 import { uid, toKey, getWeekStart, addDays } from '../utils'
 import { MAX_TASK_NAME, MAX_USER_NAME } from '../constants'
 import { applyMidnightRollover, sealOrphanedSessions } from '../midnight'
+import {
+  trackTaskCreated, trackTaskStarted, trackTaskPaused,
+  trackTaskCompleted, trackTaskDeleted,
+} from '../analytics'
 
 export function useTasks() {
   const [tasks, setTasks]             = useState({})
@@ -224,6 +228,7 @@ export function useTasks() {
       createdAt: Date.now(),
     }
     setTasks(prev => ({ ...prev, [selDate]: [...(prev[selDate] ?? []), task] }))
+    trackTaskCreated(task.tagId)
     return task.id
   }, [tasks, selDate])
 
@@ -262,6 +267,7 @@ export function useTasks() {
   }, [])
 
   const startTask = useCallback((id) => {
+    trackTaskStarted()
     const now = Date.now()
     setTasks(prev => {
       const dayTasks = prev[selDate] ?? []
@@ -283,6 +289,7 @@ export function useTasks() {
   }, [selDate])
 
   const pauseTask = useCallback((id) => {
+    trackTaskPaused()
     const safeNow = Date.now()
     updateTask(id, t => ({
       ...t,
@@ -291,6 +298,7 @@ export function useTasks() {
   }, [updateTask])
 
   const doneTask = useCallback((id) => {
+    trackTaskCompleted()
     const safeNow = Date.now()
     updateTask(id, t => ({
       ...t,
@@ -370,6 +378,7 @@ export function useTasks() {
   }, [])
 
   const deleteTask = useCallback((id) => {
+    trackTaskDeleted()
     const dateKey = selDateRef.current
     setTasks(prev => ({
       ...prev,

@@ -30,7 +30,8 @@
           "icon": "./assets/icon.png",
           "color": "#7C5CFC"
         }
-      ]
+      ],
+      "@react-native-firebase/app"
     ],
     "extra": {
       "eas": {
