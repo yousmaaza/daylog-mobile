@@ -22,3 +22,7 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+
+# Firebase native config (not used — we use HTTP Measurement Protocol)
+GoogleService-Info.plist
+google-services.json

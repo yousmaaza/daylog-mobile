@@ -12,7 +12,6 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.daylog.mobile",
-      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
