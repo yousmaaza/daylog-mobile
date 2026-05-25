@@ -22,3 +22,7 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+
+# Firebase / Google Services — contiennent des clés API sensibles, ne jamais committer
+GoogleService-Info.plist
+google-services.json

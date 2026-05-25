@@ -3,9 +3,9 @@
 Ce document rassemble plusieurs idées d'améliorations et de nouvelles fonctionnalités pour amener l'application DayLog au niveau supérieur, tant sur le plan fonctionnel que visuel.
 
 ## 1. Graphiques et Visualisation Avancée (Data Viz) 📊
-Remplacer ou accompagner la simple liste des "Time by Tag" par des graphiques sophistiqués :
-- **Donut Chart (Graphique en anneau)** : Chaque tranche utiliserait la couleur exacte de l'étiquette (`tag.dot`) pour un aperçu visuel immédiat de la répartition de la journée, semaine ou mois.
-- **Bar Chart (Graphique en barres)** : Pour comparer son temps de travail d'un jour à l'autre de manière très visuelle.
+- Rajouter un heatmamp style github 
+- Met en avant le summary 
+- Postcard pour résumer la journée
 
 ## 2. Modification Manuelle (Drag & Drop) 🛠️
 Actuellement, si l'on oublie d'éteindre un minuteur, le temps est faussé.

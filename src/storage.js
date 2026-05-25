@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { STORAGE_KEY, THEME_KEY, TEMPLATES_KEY, USERNAME_KEY, AUTH_KEY, NOTIFICATIONS_KEY } from './constants'
+import { STORAGE_KEY, THEME_KEY, TEMPLATES_KEY, USERNAME_KEY, NOTIFICATIONS_KEY } from './constants'
 
 export async function loadTasks() {
   try {
@@ -74,16 +74,6 @@ export async function saveUserName(name) {
   }
 }
 
-export async function loadAuth() {
-  try {
-    const raw = await AsyncStorage.getItem(AUTH_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch (e) {
-    console.error('[storage] loadAuth failed:', e)
-  }
-  return null
-}
-
 export async function loadNotifications() {
   try {
     const raw = await AsyncStorage.getItem(NOTIFICATIONS_KEY)
@@ -99,17 +89,5 @@ export async function saveNotifications(enabled) {
     await AsyncStorage.setItem(NOTIFICATIONS_KEY, String(enabled))
   } catch (e) {
     console.error('[storage] saveNotifications failed:', e)
-  }
-}
-
-export async function saveAuth(user) {
-  try {
-    if (user) {
-      await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(user))
-    } else {
-      await AsyncStorage.removeItem(AUTH_KEY)
-    }
-  } catch (e) {
-    console.error('[storage] saveAuth failed:', e)
   }
 }

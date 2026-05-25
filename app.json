@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Echo",
+    "name": "Daylog",
     "slug": "daylog-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,8 +12,11 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.daylog.mobile",
+      "buildNumber": "1",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserNotificationsUsageDescription": "Daylog uses notifications to remind you of active tasks.",
+        "UIBackgroundModes": []
       }
     },
     "android": {
@@ -21,7 +24,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ECEAE3"
       },
-      "package": "com.daylog.mobile"
+      "package": "com.daylog.mobile",
+      "versionCode": 1
     },
     "plugins": [
       [

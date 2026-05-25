@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   loadTasks, saveTasks, loadTheme, saveTheme,
   loadUserName, saveUserName,
-  loadAuth, saveAuth,
   loadNotifications, saveNotifications,
 } from '../storage'
 import { uid, toKey, getWeekStart, addDays } from '../utils'
@@ -14,12 +13,11 @@ export function useTasks() {
   const [darkMode, setDarkMode]       = useState(false)
   const [loaded, setLoaded]           = useState(false)
   const [tick, setTick]               = useState(0)
-  const [userName, setUserNameState]      = useState('')
-  const [user, setUser]                   = useState(null)   // { name, email, photo }
+  const [userName, setUserNameState]  = useState('')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
 
   const [todayKey, setTodayKey] = useState(() => toKey(new Date()))
-  const [selDate, setSelDate]     = useState(() => toKey(new Date()))
+  const [selDate, setSelDate]   = useState(() => toKey(new Date()))
   const selDateRef = useRef(selDate)
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()))
   const [selTaskId, setSelTaskId] = useState(null)
@@ -27,8 +25,8 @@ export function useTasks() {
   // Load from AsyncStorage on mount
   useEffect(() => {
     Promise.all([
-      loadTasks(), loadTheme(), loadUserName(), loadAuth(), loadNotifications(),
-    ]).then(([savedTasks, isDark, savedName, savedUser, notifEnabled]) => {
+      loadTasks(), loadTheme(), loadUserName(), loadNotifications(),
+    ]).then(([savedTasks, isDark, savedName, notifEnabled]) => {
       const sanitizedTasks = {}
       const nameToPId = {} // Link tasks by name if parentId is missing
 
@@ -39,14 +37,14 @@ export function useTasks() {
 
           const seenIds = new Set()
           const cleanDay = []
-          
+
           dayTasks.forEach(task => {
             if (task && task.id && !seenIds.has(task.id)) {
               seenIds.add(task.id)
               const seenSess = new Set()
               const cleanSess = []
               const sessions = Array.isArray(task.sessions) ? task.sessions : []
-              
+
               sessions.forEach(sess => {
                 if (!sess) return
                 const sId = sess.id || sess.startTime
@@ -55,12 +53,12 @@ export function useTasks() {
                   cleanSess.push(sess)
                 }
               })
-              
+
               const pId = task.parentId || nameToPId[task.name] || task.id
               if (!nameToPId[task.name]) nameToPId[task.name] = pId
 
-              cleanDay.push({ 
-                ...task, 
+              cleanDay.push({
+                ...task,
                 sessions: cleanSess,
                 favorite: !!task.favorite,
                 done: !!task.done,
@@ -76,7 +74,6 @@ export function useTasks() {
       setTasks(sealed)
       setDarkMode(isDark)
       setUserNameState(savedName)
-      setUser(savedUser)
       setNotificationsEnabled(notifEnabled)
       setLoaded(true)
     })
@@ -141,27 +138,6 @@ export function useTasks() {
     })
   }, [])
 
-  // ── Auth ─────────────────────────────────────────────────────────────────
-
-  const login = useCallback((userData) => {
-    setUser(userData)
-    saveAuth(userData)
-    if (userData.name) {
-      setUserNameState(userData.name)
-      saveUserName(userData.name)
-    }
-  }, [])
-
-  const logout = useCallback(() => {
-    setUser(null)
-    setTasks({})
-    setUserNameState('')
-    setSelDate(toKey(new Date()))
-    setSelTaskId(null)
-    saveAuth(null)
-    saveTasks({})
-  }, [])
-
   // ── Navigation ───────────────────────────────────────────────────────────
 
   const prevWeek = useCallback(() => setWeekStart(ws => addDays(ws, -7)), [])
@@ -185,12 +161,23 @@ export function useTasks() {
     saveUserName(trimmed)
   }, [])
 
+  // ── Reset all data (explicit user action with confirmation) ───────────────
+
+  const resetAllData = useCallback(() => {
+    setTasks({})
+    setUserNameState('')
+    setSelDate(toKey(new Date()))
+    setSelTaskId(null)
+    saveTasks({})
+    saveUserName('')
+  }, [])
+
   // ── Task actions ─────────────────────────────────────────────────────────
 
   const addTask = useCallback((name, options = {}) => {
     const trimmed = (name || '').trim().slice(0, MAX_TASK_NAME)
     if (!trimmed) return null
-    
+
     let finalParentId = options.parentId
     let finalTagId = options.tagId
     let isFavorite = false
@@ -202,7 +189,7 @@ export function useTasks() {
         // If parentId matches OR name matches (and no parentId provided)
         const nameMatch = t.name.trim().toLowerCase() === lowerName
         const idMatch = finalParentId && (t.id === finalParentId || t.parentId === finalParentId)
-        
+
         if (idMatch || (!finalParentId && nameMatch)) {
           finalParentId = t.parentId || t.id
           if (!finalTagId) finalTagId = t.tagId
@@ -298,7 +285,7 @@ export function useTasks() {
       done: true,
     }))
   }, [updateTask])
-  
+
   const deleteSession = useCallback((taskId, sessionId) => {
     updateTask(taskId, t => ({
       ...t,
@@ -309,14 +296,14 @@ export function useTasks() {
   const updateSession = useCallback((taskId, sessionId, startTime, endTime) => {
     const dateKey = selDateRef.current
     const now = Date.now()
-    
+
     const safeStart = Math.min(startTime, now)
     const safeEnd   = endTime ? Math.min(endTime, now) : null
     const finalEnd  = safeEnd || now
 
     setTasks(prev => {
       const dayTasks = prev[dateKey] ?? []
-      
+
       const newDayTasks = dayTasks.map(t => {
         // Filter out sessions that are FULLY included in the new range
         // AND clip sessions that partially overlap
@@ -324,10 +311,10 @@ export function useTasks() {
           .filter(s => {
             const sId = s.id || s.startTime
             if (sId === sessionId) return true // Keep the session we are editing
-            
+
             const os = Number(s.startTime)
             const oe = s.endTime ? Number(s.endTime) : now
-            
+
             // Delete if FULLY included: (os >= safeStart && oe <= finalEnd)
             const isFullyIncluded = os >= safeStart && oe <= finalEnd
             return !isFullyIncluded
@@ -335,10 +322,10 @@ export function useTasks() {
           .map(s => {
             const sId = s.id || s.startTime
             if (sId === sessionId) return { ...s, startTime: safeStart, endTime: safeEnd }
-            
+
             let os = Number(s.startTime)
             let oe = s.endTime ? Number(s.endTime) : now
-            
+
             // Clip if partially overlapping
             // Case A: new range starts inside this session -> clip end of this session
             if (safeStart > os && safeStart < oe) {
@@ -348,7 +335,7 @@ export function useTasks() {
             if (finalEnd > os && finalEnd < oe) {
               os = finalEnd
             }
-            
+
             // If after clipping the session is invalid (start >= end), it should have been filtered
             // but we double check here just in case.
             return { ...s, startTime: os, endTime: s.endTime ? oe : null }
@@ -395,10 +382,10 @@ export function useTasks() {
   return {
     tasks, darkMode, loaded, tick,
     selDate, weekStart, selTaskId,
-    userName, user,
+    userName,
     notificationsEnabled, toggleNotifications,
     setSelTaskId, toggleDarkMode, setUserName,
-    login, logout,
+    resetAllData,
     prevWeek, nextWeek, goToday, selectDay,
     addTask, startTask, pauseTask, doneTask, deleteTask, reorderTasks, changeTaskTag,
     toggleFavorite, deleteSession, updateSession,

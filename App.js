@@ -13,7 +13,6 @@ import Svg, { Path, Rect, Circle, Line } from 'react-native-svg'
 
 import { TaskProvider, useTaskContext } from './src/context/TaskContext'
 import { useTaskNotification } from './src/hooks/useTaskNotification'
-import LoginScreen    from './src/screens/LoginScreen'
 import TodayScreen    from './src/screens/TodayScreen'
 import TimelineScreen from './src/screens/TimelineScreen'
 import StatsScreen    from './src/screens/StatsScreen'
@@ -78,7 +77,7 @@ const RIGHT_TABS = [
 function AppContent() {
   const { width, height } = useWindowDimensions()
   const insets   = useSafeAreaInsets()
-  const { darkMode, addTask, user, loaded, tasks, tick, notificationsEnabled } = useTaskContext()
+  const { darkMode, addTask, loaded, tasks, tick, notificationsEnabled } = useTaskContext()
   useTaskNotification(tasks, tick, notificationsEnabled)
   const currentTheme = (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light
 
@@ -113,16 +112,6 @@ function AppContent() {
         <StatusBar style={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).statusBar} />
         <ActivityIndicator size="large" color={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).amber} />
       </View>
-    )
-  }
-
-  // 2. Show login screen if not authenticated
-  if (!user) {
-    return (
-      <>
-        <StatusBar style={( (typeof darkMode !== 'undefined' && darkMode) ? COLORS.dark : COLORS.light).statusBar} />
-        <LoginScreen />
-      </>
     )
   }
 

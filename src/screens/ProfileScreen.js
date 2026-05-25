@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
-  StyleSheet, Switch,
+  StyleSheet, Switch, Alert,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path, Circle, Rect } from 'react-native-svg'
@@ -50,7 +50,7 @@ export default function ProfileScreen() {
     darkMode, toggleDarkMode,
     notificationsEnabled, toggleNotifications,
     userName, setUserName,
-    user, logout,
+    resetAllData,
     tasks,
     toggleFavorite,
   } = useTaskContext()
@@ -82,13 +82,27 @@ export default function ProfileScreen() {
     return Array.from(byParent.values()).sort((a, b) => b.createdAt - a.createdAt)
   }, [tasks])
 
-  const displayName = (user?.name || userName || 'Your Name').trim()
-  const displayEmail = user?.email || ''
+  const displayName = (userName || 'Your Name').trim()
   const initials    = displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
   const handleSaveName = () => {
     setUserName(nameInput.trim())
     setEditingName(false)
+  }
+
+  const handleResetData = () => {
+    Alert.alert(
+      'Delete All Data',
+      'This will permanently delete all your tasks and sessions. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Everything',
+          style: 'destructive',
+          onPress: resetAllData,
+        },
+      ]
+    )
   }
 
   return (
@@ -129,11 +143,6 @@ export default function ProfileScreen() {
             />
           ) : (
             <Text style={[styles.userName, { color: C.inkPrimary }]}>{displayName}</Text>
-          )}
-          {displayEmail ? (
-            <Text style={[styles.userEmail, { color: C.inkMuted }]}>{displayEmail}</Text>
-          ) : (
-            <Text style={[styles.userEmail, { color: C.inkFaint }]}>No email set</Text>
           )}
         </View>
 
@@ -243,20 +252,20 @@ export default function ProfileScreen() {
         />
       </View>
 
-      {/* ── Sign out ─────────────────────────────────────────────────────── */}
+      {/* ── Danger zone ──────────────────────────────────────────────────── */}
       <View style={[styles.section, { backgroundColor: C.bgPanel, marginHorizontal: 16, marginBottom: 12 }]}>
         <MenuRow
           darkMode={darkMode}
-          icon={<Text style={{ fontSize: 16 }}>→</Text>}
-          label="Sign Out"
-          onPress={logout}
+          icon={<Text style={{ fontSize: 16 }}>🗑️</Text>}
+          label="Delete All Data"
+          onPress={handleResetData}
           danger
           noBorder={true}
         />
       </View>
 
       {/* App info */}
-      <Text style={[styles.appVer, { color: C.inkFaint }]}>Echo  ·  v1.0</Text>
+      <Text style={[styles.appVer, { color: C.inkFaint }]}>Daylog  ·  v1.0</Text>
     </ScrollView>
   )
 }
@@ -316,9 +325,6 @@ const styles = StyleSheet.create({
   userName: {
     fontSize:   17,
     fontWeight: '700',
-  },
-  userEmail: {
-    fontSize: 13,
   },
   nameInput: {
     fontSize:          17,
