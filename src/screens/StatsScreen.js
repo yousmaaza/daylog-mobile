@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native'
 import * as XLSX from 'xlsx'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -10,6 +10,7 @@ import { COLORS, DEFAULT_TAGS, getTaskPalette } from '../constants'
 import { getTaskStatus, getTotalMs, formatShort, formatLive, toKey, addDays } from '../utils'
 import DonutChart from '../components/DonutChart'
 import ActivityHeatmap, { DAY_LABELS, getHourlyMs } from '../components/WeekHeatmap'
+import { trackScreen, trackExport } from '../analytics'
 
 const MODES = ['Day', 'Week', 'Month']
 
@@ -99,6 +100,8 @@ export default function StatsScreen() {
   const todayKey = toKey(new Date())
   const C = darkMode ? COLORS.dark : COLORS.light
 
+  useEffect(() => { trackScreen('Overview') }, [])
+
   const [modeIdx, setModeIdx] = useState(0)
   const mode = MODES[modeIdx].toLowerCase()
   const now = Date.now()
@@ -155,6 +158,7 @@ export default function StatsScreen() {
     try {
       const ok = await Sharing.isAvailableAsync()
       if (!ok) { Alert.alert('Indisponible', 'Le partage n\'est pas disponible sur cet appareil.'); return }
+      trackExport('xlsx')
       await exportXLSX(tasks, selDate, weekStart)
     } catch (e) {
       Alert.alert('Erreur export', e.message)

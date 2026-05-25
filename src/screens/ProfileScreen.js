@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
   StyleSheet, Switch,
@@ -8,6 +8,7 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg'
 import { useTaskContext } from '../context/TaskContext'
 import { COLORS, DEFAULT_TAGS, getTaskPalette, MAX_USER_NAME } from '../constants'
 import { getTotalMs, formatShort } from '../utils'
+import { trackScreen } from '../analytics'
 
 // ── Small chevron icon ────────────────────────────────────────────────────────
 const Chevron = ({ color }) => (
@@ -55,6 +56,8 @@ export default function ProfileScreen() {
     toggleFavorite,
   } = useTaskContext()
   const C = darkMode ? COLORS.dark : COLORS.light
+
+  useEffect(() => { trackScreen('Profile') }, [])
 
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput]     = useState(userName)

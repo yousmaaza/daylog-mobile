@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Linking } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTaskContext } from '../context/TaskContext'
@@ -6,6 +6,7 @@ import { COLORS, DAY_FULL, MONTH_FULL } from '../constants'
 import { toKey } from '../utils'
 import WeekPicker from '../components/WeekPicker'
 import TaskCard from '../components/TaskCard'
+import { trackScreen, trackFeedbackOpened, trackFeedbackDismissed } from '../analytics'
 
 const FEEDBACK_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdlNFH-C9NWFXdbYcSWkz_9d5qvsl2XZK9LqkbHScVp3xrCbQ/viewform'
 
@@ -21,6 +22,8 @@ export default function TodayScreen() {
 
   const [feedbackDismissed, setFeedbackDismissed] = useState(false)
   const C = darkMode ? COLORS.dark : COLORS.light
+
+  useEffect(() => { trackScreen('Today') }, [])
 
   const baseTasks  = tasks[selDate] ?? []
   // Sort logic: 
@@ -128,14 +131,14 @@ export default function TodayScreen() {
             <Text style={styles.feedbackSub}>2 min · anonymous survey</Text>
           </View>
           <TouchableOpacity
-            onPress={() => Linking.openURL(FEEDBACK_URL)}
+            onPress={() => { trackFeedbackOpened(); Linking.openURL(FEEDBACK_URL) }}
             style={styles.feedbackBtn}
             activeOpacity={0.8}
           >
             <Text style={styles.feedbackBtnText}>Share feedback</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setFeedbackDismissed(true)}
+            onPress={() => { trackFeedbackDismissed(); setFeedbackDismissed(true) }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={{ paddingLeft: 8 }}
           >

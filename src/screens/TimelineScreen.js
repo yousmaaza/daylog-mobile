@@ -11,6 +11,7 @@ import {
 } from '../constants'
 import { toKey, formatShort, formatLive, getTotalMs } from '../utils'
 import WeekPicker from '../components/WeekPicker'
+import { trackScreen } from '../analytics'
 
 const LABEL_W   = 52
 const NOW_COLOR = '#F43F5E'
@@ -192,6 +193,9 @@ export default function TimelineScreen() {
   }, [])
 
   const C          = darkMode ? COLORS.dark : COLORS.light
+
+  useEffect(() => { trackScreen('Timeline') }, [])
+
   const selDateObj = new Date(selDate + 'T12:00:00')
   const dayLabel   = `${DAY_FULL[selDateObj.getDay()]}, ${selDateObj.getDate()} ${MONTH_FULL[selDateObj.getMonth()]}`
 
