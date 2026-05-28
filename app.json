@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Daylog",
-    "slug": "daylog-mobile",
+    "name": "Echo",
+    "slug": "echo-daylog",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,7 +11,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.daylog.mobile",
+      "bundleIdentifier": "com.echodaylog.app",
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ECEAE3"
       },
-      "package": "com.daylog.mobile",
+      "package": "com.echodaylog.app",
       "versionCode": 1
     },
     "plugins": [
@@ -38,8 +38,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "8f667733-713a-4cd9-89f2-7b41dfcfc8e5"
+        "projectId": "e0f788ac-3c3a-452a-b474-ea76b002821e"
       }
-    }
+    },
+    "owner": "appdevlaura"
   }
 }

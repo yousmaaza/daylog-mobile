@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Alert, AppState } from 'react-native'
+import { Alert, AppState, Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import { getTaskStatus, getTotalMs } from '../utils'
 
@@ -49,11 +49,17 @@ export function useTaskNotification(tasks, tick, notificationsEnabled) {
   useEffect(() => { tasksRef.current = tasks },                   [tasks])
   useEffect(() => { enabledRef.current = notificationsEnabled },  [notificationsEnabled])
 
-  // ── Permission request ────────────────────────────────────────────────────
+  // ── Permission request + Android channel ─────────────────────────────────
   useEffect(() => {
     Notifications.requestPermissionsAsync().then(({ status }) => {
       permGranted.current = status === 'granted'
     })
+    if (Platform.OS === 'android') {
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.DEFAULT,
+      })
+    }
   }, [])
 
   // ── Background: schedule a single notification at the 3h mark ────────────
@@ -74,7 +80,7 @@ export function useTaskNotification(tasks, tick, notificationsEnabled) {
             title: `${emoji} ${active.name}`,
             body:  'Tourne depuis plus de 3 heures.',
           },
-          trigger: { seconds: Math.ceil(remaining / 1000) },
+          trigger: { seconds: Math.ceil(remaining / 1000), channelId: 'default' },
         }).catch(() => null)
 
       } else if (nextState === 'active') {

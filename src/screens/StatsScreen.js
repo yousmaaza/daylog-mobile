@@ -83,7 +83,7 @@ async function exportXLSX(tasks, selDate, weekStart) {
   XLSX.utils.book_append_sheet(wb, buildMonthSheet(tasks, selDate), 'Mois')
 
   const b64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' })
-  const fileUri = `${FileSystem.cacheDirectory}daylog-${toKey(new Date())}.xlsx`
+  const fileUri = `${FileSystem.cacheDirectory}echo-daylog-${toKey(new Date())}.xlsx`
   await FileSystem.writeAsStringAsync(fileUri, b64, { encoding: FileSystem.EncodingType.Base64 })
   await Sharing.shareAsync(fileUri, {
     mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
